@@ -3,8 +3,10 @@ import time
 import requests
 import scrapy
 from seleniumwire import webdriver
-import csv
+import json
 
+file = open('Booksdata.json', 'w')
+driver = webdriver.Ie()
 headers = {
     'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,'
               'application/signed-exchange;v=b3;q=0.9',
@@ -20,19 +22,92 @@ headers = {
                   'Chrome/85.0.4183.102 Safari/537.36',
 }
 
+
 # csv_file = open('E:\Project\genratedfiles\amazonBooks.csv', 'w', encoding='utf-8', newline='')
 
 
-
 def getBookData(url):
-    resp = requests.get(url=url, headers=headers)
-    respon = resp.text
-    response = scrapy.Selector(text=respon)
+    print(url)
+    driver.get(url=url)
+    time.sleep(5)
+    pageSource = driver.page_source
+    response = scrapy.Selector(text=pageSource)
     item = dict()
-    item['Title'] = response.css('#productTitle ::text').extract_first().strip()
-    item['Sub Title'] = response.css('#productSubtitle ::text').extract_first().strip()
-    item['Author'] = response.css('#bylineInfo .a-link-normal.contributorNameID ::text').extract_first().strip()
-    item['Price'] = response.css('#buyNewSection span::text').extract_first().strip()
+    if response.css('#productTitle') and response.css('#productSubtitle'):
+        item['Title'] = response.css('#productTitle ::text').extract_first().strip() + ' ' + response.css(
+            '#productSubtitle ::text').extract_first()
+    else:
+        return
+    if response.css('#bylineInfo .a-link-normal.contributorNameID'):
+        item['Author'] = response.css('#bylineInfo .a-link-normal.contributorNameID ::text').extract_first()
+    elif response.css('#bylineInfo .a-link-normal'):
+        item['Author'] = response.css('#bylineInfo .a-link-normal ::text').extract_first()
+    else:
+        return
+    if response.css('#buyNewSection span::text'):
+        item['Price'] = response.css('#buyNewSection span::text').extract_first()
+        item['MRP'] = response.css('span[class="a-color-secondary a-text-strike"] ::text').extract_first()
+    elif response.css('.a-lineitem.a-spacing-micro'):
+        item['Price'] = ''.join(response.css('.kindle-price ::text').extract()[:7]).replace('\n', '')
+        item['MRP'] = ''.join(response.css('.print-list-price ::text').extract()).replace('\n', '')
+    else:
+        return
+    if response.css('#acrCustomerReviewText'):
+        item['Rating'] = response.css('#acrCustomerReviewText ::text').extract_first()
+    else:
+        return
+    if response.css('#imgBlkFront'):
+        item['Image'] = response.css('#imgBlkFront ::attr(src)').extract_first()
+    elif response.css('#ebooksImgBlkFront'):
+        item['Image'] = response.css('#ebooksImgBlkFront ::attr(src)').extract_first()
+    else:
+        return
+
+    item['Diff Format Price'] = ''
+    if response.css('#twister'):
+        for pr in response.css('#twister .top-level.unselected-row'):
+            if pr.css('.a-size-small.a-color-price'):
+                item['Diff Format Price'] = item['Diff Format Price'] + (
+                            pr.css('.a-size-small.a-color-base ::text').extract_first() + ': ' + pr.css(
+                        '.a-size-small.a-color-price ::text').extract_first().strip() + ' ; ')
+            else:
+                item['Diff Format Price'] = item['Diff Format Price'] + (
+                            pr.css('.a-size-small.a-color-base ::text').extract_first() + ': Price Unavalible')
+    else:
+        return
+    if response.css('#editorialReviews_feature_div'):
+        item['Product Description'] = ''.join(response.css(
+            '#editorialReviews_feature_div .a-row.a-expander-container.a-expander-extend-container ::text').extract()).replace(
+            '\n', '')
+    else:
+        return
+    if response.css('#detailBullets_feature_div #detailBullets_feature_div'):
+        item['Product Detail'] = ''.join(
+            response.css('#detailBullets_feature_div #detailBullets_feature_div *::text').extract()).replace('\n',
+                                                                                                             ' ')
+    else:
+        return
+    if response.xpath('//*[@id="detailBulletsWrapper_feature_div"]/ul[1]//text()'):
+        item['Seller Ranking'] = ''.join(
+            response.xpath('//*[@id="detailBulletsWrapper_feature_div"]/ul[1]//text()').extract()).replace('\n', '')
+    else:
+        return
+    if response.xpath('//*[@id="detailBullets_averageCustomerReviews"]/span[3]//text()'):
+        item['Customer Reviews'] = ''.join(
+            response.xpath('//*[@id="detailBullets_averageCustomerReviews"]/span[3]//text()').extract()).replace('\n',
+                                                                                                                 '')
+    else:
+        return
+    if driver.find_element_by_id('bookDesc_iframe'):
+        iframe = driver.find_element_by_id('bookDesc_iframe')
+        driver.switch_to.frame(iframe)
+        pgsource = driver.page_source
+        resp = scrapy.Selector(text=pgsource)
+        item['Short Passage'] = ''.join(resp.css('#iframeContent ::text').extract()).replace('\n', '')
+    else:
+        return
+
+    json.dump(item, file)
 
     return
 
@@ -47,9 +122,11 @@ def getBooksList(url):
         book_link = li.attrib.get('href')
         Book_Links.append(book_link)
     i = 2
-    driver = webdriver.Ie()
-    totalPages = int(response.css('#pagn .pagnDisabled ::text').extract_first())
-    while i != 3:
+    if(response.css('#pagn .pagnDisabled')):
+        totalPages = int(response.css('#pagn .pagnDisabled ::text').extract_first())
+    else:
+        return
+    while i != totalPages:  # remove 3 and put totalPages in production
         next_page_url = 'https://www.amazon.in/s?rh=n%3A976389031%2Cn%3A%21976390031%2Cn%3A1318158031&page={}&qid' \
                         '=1600757238&ref=lp_1318158031_pg_{}'.format(i, i)
         i = i + 1
@@ -83,3 +160,4 @@ def getBooksByGenres():
 
 if __name__ == '__main__':
     getBooksByGenres()
+    driver.quit()
