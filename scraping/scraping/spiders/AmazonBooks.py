@@ -2,11 +2,20 @@ import time
 
 import requests
 import scrapy
-from seleniumwire import webdriver
+from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
 import json
+import csv
 
-file = open('Booksdata.json', 'w')
+csvheaders = ['Title', 'Author','url', 'Category', 'Price', 'MRP', 'Diff Format Prices', 'Rating', 'Image',
+              'Product Description',
+              'Product Detail', 'Seller Ranking', 'Customer Reviews', 'Short Passage', ]
+file = open('E:\Project\genratedfiles\Booksdata.csv', 'w', newline='', encoding='utf-8')
+writer = csv.DictWriter(file, csvheaders)
+writer.writeheader()
+
 driver = webdriver.Ie()
+driver.set_page_load_timeout(15)
 headers = {
     'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,'
               'application/signed-exchange;v=b3;q=0.9',
@@ -25,17 +34,40 @@ headers = {
 
 # csv_file = open('E:\Project\genratedfiles\amazonBooks.csv', 'w', encoding='utf-8', newline='')
 
+# def getResponce(url):
+#     try:
+#         responce=driver.get(url=url)
+#         return responce
+#     except:
+#         try:
+#             driver.quit()
+#             dr = webdriver.Ie()
+#             responce=dr.get(url=url)
+#             return responce
+#
+#         except:
+#             return 'flag'
+#
+
 
 def getBookData(url):
     print(url)
-    driver.get(url=url)
-    time.sleep(5)
+    try:
+        driver.get(url=url)
+    except TimeoutException:
+        try:
+            driver.get(url=url)
+        except:
+            print('Loading failed: ' + url) # yahan error aa rha hai after Message: Failed to navigate to...
+            return
+
     pageSource = driver.page_source
     response = scrapy.Selector(text=pageSource)
     item = dict()
+    item['url']=url
     if response.css('#productTitle') and response.css('#productSubtitle'):
-        item['Title'] = response.css('#productTitle ::text').extract_first().strip() + ' ' + response.css(
-            '#productSubtitle ::text').extract_first()
+        item['Title'] = (response.css('#productTitle ::text').extract_first().strip() + ' ' + response.css(
+            '#productSubtitle ::text').extract_first()).replace('\n', '')
     else:
         return
     if response.css('#bylineInfo .a-link-normal.contributorNameID'):
@@ -44,7 +76,14 @@ def getBookData(url):
         item['Author'] = response.css('#bylineInfo .a-link-normal ::text').extract_first()
     else:
         return
-    if response.css('#buyNewSection span::text'):
+
+    if response.css('#wayfinding-breadcrumbs_feature_div'):
+        item['Category'] = ', '.join(response.css(
+            '#wayfinding-breadcrumbs_feature_div .a-link-normal.a-color-tertiary ::text').extract()).replace('\n',
+                                                                                                             '').strip()
+    else:
+        item['Category'] = ''
+    if response.css('#buyNewSection'):
         item['Price'] = response.css('#buyNewSection span::text').extract_first()
         item['MRP'] = response.css('span[class="a-color-secondary a-text-strike"] ::text').extract_first()
     elif response.css('.a-lineitem.a-spacing-micro'):
@@ -52,27 +91,34 @@ def getBookData(url):
         item['MRP'] = ''.join(response.css('.print-list-price ::text').extract()).replace('\n', '')
     else:
         return
-    if response.css('#acrCustomerReviewText'):
-        item['Rating'] = response.css('#acrCustomerReviewText ::text').extract_first()
+    if response.css('.a-fixed-left-grid-col.aok-align-center.a-col-right'):
+        item['Rating'] = response.css('#reviewsMedley .a-size-medium.a-color-base ::text').extract_first() +' From '+ response.css('#acrCustomerReviewText ::text').extract_first()
     else:
-        return
+        item['Rating'] = ' '
     if response.css('#imgBlkFront'):
         item['Image'] = response.css('#imgBlkFront ::attr(src)').extract_first()
+        if(response.css('#imageBlockThumbs')):
+            item['Image']=item['Image']+' , '+(' , '.join(response.css('#imageBlockThumbs img::attr(src)').extract()))
     elif response.css('#ebooksImgBlkFront'):
         item['Image'] = response.css('#ebooksImgBlkFront ::attr(src)').extract_first()
     else:
         return
 
-    item['Diff Format Price'] = ''
     if response.css('#twister'):
+        price_list = []
         for pr in response.css('#twister .top-level.unselected-row'):
+            Diff_Format_Price = dict()
             if pr.css('.a-size-small.a-color-price'):
-                item['Diff Format Price'] = item['Diff Format Price'] + (
-                            pr.css('.a-size-small.a-color-base ::text').extract_first() + ': ' + pr.css(
-                        '.a-size-small.a-color-price ::text').extract_first().strip() + ' ; ')
+                Diff_Format_Price['Format'] = pr.css('.a-size-small.a-color-base ::text').extract_first()
+                Diff_Format_Price['Price'] = pr.css('.a-size-small.a-color-price ::text').extract_first()
+                price_list.append(Diff_Format_Price)
+
             else:
-                item['Diff Format Price'] = item['Diff Format Price'] + (
-                            pr.css('.a-size-small.a-color-base ::text').extract_first() + ': Price Unavalible')
+                Diff_Format_Price['Format'] = pr.css('.a-size-small.a-color-base ::text').extract_first()
+                Diff_Format_Price['Price'] = 'Price/Product is Unavalible'
+                price_list.append(Diff_Format_Price)
+
+        item['Diff Format Prices'] = json.dumps(price_list)
     else:
         return
     if response.css('#editorialReviews_feature_div'):
@@ -82,16 +128,22 @@ def getBookData(url):
     else:
         return
     if response.css('#detailBullets_feature_div #detailBullets_feature_div'):
-        item['Product Detail'] = ''.join(
-            response.css('#detailBullets_feature_div #detailBullets_feature_div *::text').extract()).replace('\n',
-                                                                                                             ' ')
+        productdets = ''.join(response.css('#detailBullets_feature_div #detailBullets_feature_div *::text').extract()).replace('\n',' ').strip().split('   ')
+        productdetsDict = dict()
+        for productdet in productdets:
+            if productdet == '':
+                continue
+            else:
+                keynvalue = productdet.split(':')
+                productdetsDict[keynvalue[0]] = keynvalue[1]
+        item['Product Detail'] =json.dumps(productdetsDict)
     else:
-        return
+        item['Product Detail'] = ' '
     if response.xpath('//*[@id="detailBulletsWrapper_feature_div"]/ul[1]//text()'):
-        item['Seller Ranking'] = ''.join(
-            response.xpath('//*[@id="detailBulletsWrapper_feature_div"]/ul[1]//text()').extract()).replace('\n', '')
+        sellerRank=''.join(response.xpath('//*[@id="detailBulletsWrapper_feature_div"]/ul[1]//text()').extract()).replace('\n', '').split('#')
+        item['Seller Ranking'] = json.dumps(sellerRank)
     else:
-        return
+        item['Seller Ranking']=' '
     if response.xpath('//*[@id="detailBullets_averageCustomerReviews"]/span[3]//text()'):
         item['Customer Reviews'] = ''.join(
             response.xpath('//*[@id="detailBullets_averageCustomerReviews"]/span[3]//text()').extract()).replace('\n',
@@ -107,7 +159,8 @@ def getBookData(url):
     else:
         return
 
-    json.dump(item, file)
+    writer.writerow(item)
+    file.flush()
 
     return
 
@@ -122,15 +175,23 @@ def getBooksList(url):
         book_link = li.attrib.get('href')
         Book_Links.append(book_link)
     i = 2
-    if(response.css('#pagn .pagnDisabled')):
+    if (response.css('#pagn .pagnDisabled')):
         totalPages = int(response.css('#pagn .pagnDisabled ::text').extract_first())
     else:
         return
-    while i != totalPages:  # remove 3 and put totalPages in production
+    while i <= 1:  # remove 3 and put totalPages in production
         next_page_url = 'https://www.amazon.in/s?rh=n%3A976389031%2Cn%3A%21976390031%2Cn%3A1318158031&page={}&qid' \
                         '=1600757238&ref=lp_1318158031_pg_{}'.format(i, i)
+        print(str(i) + ' page')
         i = i + 1
-        driver.get(next_page_url)
+        try:
+            driver.get(url=next_page_url)
+        except TimeoutException:
+            try:
+                driver.get(url=next_page_url)
+            except:
+                print('Loading failed: ' + next_page_url)
+                continue
         time.sleep(2)
         ps = driver.page_source
         response = scrapy.Selector(text=ps)
