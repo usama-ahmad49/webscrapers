@@ -32,24 +32,6 @@ headers = {
 }
 
 
-# csv_file = open('E:\Project\genratedfiles\amazonBooks.csv', 'w', encoding='utf-8', newline='')
-
-# def getResponce(url):
-#     try:
-#         responce=driver.get(url=url)
-#         return responce
-#     except:
-#         try:
-#             driver.quit()
-#             dr = webdriver.Ie()
-#             responce=dr.get(url=url)
-#             return responce
-#
-#         except:
-#             return 'flag'
-#
-
-
 def getBookData(url):
     print(url)
     try:

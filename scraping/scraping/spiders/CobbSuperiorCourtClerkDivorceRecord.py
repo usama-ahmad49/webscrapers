@@ -4,6 +4,7 @@ try:
 except ImportError:
     pass
 import requests
+import json
 import scrapy
 import copy
 import csv
@@ -48,6 +49,194 @@ FormData = {'resultrows': '100',
             'resultrows2': '100'
             }
 
+file_json=open('CobbSuperiorCourtClerkDivorceRecord.json','w')
+file_json_list=[]
+
+
+def getjsondata_ind_case(number):
+    url='https://ctsearch.cobbsuperiorcourtclerk.com/CaseDetails/{}'.format(number)
+    response=requests.get(url)
+    resp = scrapy.Selector(text=response.content.decode('utf-8'))
+    casenumber=int(resp.css('#resultheader .resultrow.resultrowleft h3')[0].css('::text').extract_first().split()[3])
+    casename=resp.css('#resultheader .resultrow.resultrowleft h3')[1].css('::text').extract_first()
+    judge=resp.css('#resultheader .resultrow.resultrowleft h3')[2].css('::text').extract_first().split(':')[1]
+    casetype=resp.css('#resultheader .resultrow.resultrowleft h3')[3].css('::text').extract_first().split(':')[1]
+    filingDate=resp.css('#resultheader .resultrow.resultrowleft h3')[4].css('::text').extract_first().split(':')[1]
+    caseStatus=resp.css('#resultheader .resultrow.resultrowleft h3')[5].css('::text').extract_first().split(':')[1]
+    dipositionDate=resp.css('#resultheader .resultrow.resultrowleft h3')[6].css('::text').extract_first().split(':')[1]
+    datadict=dict()
+    datadict['case_no'] = dict()
+    datadict['case_no']['civil_case_no']=casenumber
+    datadict['case_no']['case_name']=casename
+    datadict['case_no']['judge'] = judge
+    datadict['case_no']['case_type'] = casetype
+    datadict['case_no']['filing_date'] = filingDate
+    datadict['case_no']['status'] = caseStatus
+    datadict['case_no']['diposition_date'] = dipositionDate
+    datadict['case_no']['parties'] = []
+    datadict['case_no']['pleadings'] = []
+    datadict['case_no']['hearings'] = []
+    datadict['case_no']['attorneys'] = []
+    datadict['case_no']['service'] = []
+    datadict['case_no']['appeals'] = []
+    datadict['case_no']['costs'] = []
+    datadict['case_no']['disposition'] = []
+    for parties in resp.css('#data_1 .resultgroup .resultrow'):
+        party_item = dict()
+        party_item['party_type']=parties.css('div.resultcell:nth-child(2)::text').extract_first().strip()
+        party_item['name'] = parties.css('div.resultcell:nth-child(3)::text').extract_first().strip()
+        datadict['case_no']['parties'].append(party_item)
+
+    for parties in resp.css('#data_1 .resultgroup .resultaltrow'):
+        party_item = dict()
+        party_item['party_type']=parties.css('div.resultcell:nth-child(2)::text').extract_first().strip()
+        party_item['name'] = parties.css('div.resultcell:nth-child(3)::text').extract_first().strip()
+        datadict['case_no']['parties'].append(party_item)
+
+    for pleading in resp.css('#data_2 .resultgroup .resultrow'):
+        pleading_item = dict()
+        pleading_item['file_date']= pleading.css('div.resultcell:nth-child(3)::text').extract_first().strip()
+        pleading_item['add_date']=pleading.css('div.resultcell:nth-child(4)::text').extract_first().strip()
+        pleading_item['filling_party']=pleading.css('div.resultcell:nth-child(5)::text').extract_first().strip()
+        pleading_item['type']=pleading.css('div.resultcell:nth-child(6)::text').extract_first().strip()
+        pleading_item['CCFN']=pleading.css('div.resultcell:nth-child(7)::text').extract_first().strip()
+        datadict['case_no']['pleadings'].append(pleading_item)
+
+    for pleading in resp.css('#data_2 .resultgroup .resultaltrow'):
+        pleading_item = dict()
+        pleading_item['file_date']= pleading.css('div.resultcell:nth-child(3)::text').extract_first().strip()
+        pleading_item['add_date']=pleading.css('div.resultcell:nth-child(4)::text').extract_first().strip()
+        pleading_item['filling_party']=pleading.css('div.resultcell:nth-child(5)::text').extract_first().strip()
+        pleading_item['type']=pleading.css('div.resultcell:nth-child(6)::text').extract_first().strip()
+        pleading_item['CCFN']=pleading.css('div.resultcell:nth-child(7)::text').extract_first().strip()
+        datadict['case_no']['pleadings'].append(pleading_item)
+
+    for hearing in resp.css('#data_3 .resultgroup .resultrow'):
+        hearing_item=dict()
+        hearing_item['hearing_number'] = hearing.css('div.resultcell:nth-child(1)::text').extract_first().strip()
+        hearing_item['judge'] = hearing.css('div.resultcell:nth-child(2)::text').extract_first().strip()
+        hearing_item['hearing_date'] = hearing.css('div.resultcell:nth-child(3)::text').extract_first().strip().split()[0]
+        hearing_item['hearing_time'] = hearing.css('div.resultcell:nth-child(3)::text').extract_first().strip().split()[1]
+        hearing_item['type'] = hearing.css('div.resultcell:nth-child(4)::text').extract_first('').strip()
+        hearing_item['action'] = hearing.css('div.resultcell:nth-child(5)::text').extract_first('').strip()
+        hearing_item['notice_date'] = hearing.css('div.resultcell:nth-child(6)::text').extract_first('').strip()
+        hearing_item['location'] = hearing.css('div.resultcell:nth-child(7)::text').extract_first('').strip()
+        datadict['case_no']['hearings'].append(hearing_item)
+
+    for hearing in resp.css('#data_3 .resultgroup .resultaltrow'):
+        hearing_item=dict()
+        hearing_item['hearing_number'] = hearing.css('div.resultcell:nth-child(1)::text').extract_first().strip()
+        hearing_item['judge'] = hearing.css('div.resultcell:nth-child(2)::text').extract_first().strip()
+        hearing_item['hearing_date'] = hearing.css('div.resultcell:nth-child(3)::text').extract_first().strip().split()[0]
+        hearing_item['hearing_time'] = hearing.css('div.resultcell:nth-child(3)::text').extract_first().strip().split()[1]
+        hearing_item['type'] = hearing.css('div.resultcell:nth-child(4)::text').extract_first('').strip()
+        hearing_item['action'] = hearing.css('div.resultcell:nth-child(5)::text').extract_first('').strip()
+        hearing_item['notice_date'] = hearing.css('div.resultcell:nth-child(6)::text').extract_first('').strip()
+        hearing_item['location'] = hearing.css('div.resultcell:nth-child(7)::text').extract_first('').strip()
+        datadict['case_no']['hearings'].append(hearing_item)
+
+    for attorney in resp.css('#data_4 .resultgroup .resultrow'):
+        attorney_item = dict()
+        attorney_item['party_number'] = attorney.css('div.resultcell:nth-child(1)::text').extract_first().strip()
+        attorney_item['name'] = attorney.css('div.resultcell:nth-child(2)::text').extract_first().strip()
+        attorney_item['status'] = attorney.css('div.resultcell:nth-child(3)::text').extract_first().strip()
+        attorney_item['attorney_address'] = ' '.join(''.join(attorney.css('div.resultcell:nth-child(4)::text').extract()).split())
+        datadict['case_no']['attorneys'].append(attorney_item)
+
+    for attorney in resp.css('#data_4 .resultgroup .resultaltrow'):
+        attorney_item = dict()
+        attorney_item['party_number'] = attorney.css('div.resultcell:nth-child(1)::text').extract_first().strip()
+        attorney_item['name'] = attorney.css('div.resultcell:nth-child(2)::text').extract_first().strip()
+        attorney_item['status'] = attorney.css('div.resultcell:nth-child(3)::text').extract_first().strip()
+        attorney_item['attorney_address'] = ' '.join(''.join(attorney.css('div.resultcell:nth-child(4)::text').extract()).split())
+        datadict['case_no']['attorneys'].append(attorney_item)
+
+    for service in resp.css('#data_5 .resultgroup .resultrow'):
+        service_item = dict()
+        service_item['party_number']= service.css('div.resultcell:nth-child(1)::text').extract_first().strip()
+        service_item['service_number']=service.css('div.resultcell:nth-child(2)::text').extract_first().strip()
+        service_item['filed_date']=service.css('div.resultcell:nth-child(3)::text').extract_first().strip()
+        service_item['service_type']=service.css('div.resultcell:nth-child(4)::text').extract_first().strip()
+        service_item['service_date']=service.css('div.resultcell:nth-child(5)::text').extract_first().strip()
+        service_item['pleading']=service.css('div.resultcell:nth-child(6)::text').extract_first().strip()
+        service_item['CCFN']=service.css('div.resultcell:nth-child(7)::text').extract_first().strip()
+        datadict['case_no']['service'].append(service_item)
+
+    for service in resp.css('#data_5 .resultgroup .resultaltrow'):
+        service_item = dict()
+        service_item['party_number']= service.css('div.resultcell:nth-child(1)::text').extract_first().strip()
+        service_item['service_number']=service.css('div.resultcell:nth-child(2)::text').extract_first().strip()
+        service_item['filed_date']=service.css('div.resultcell:nth-child(3)::text').extract_first().strip()
+        service_item['service_type']=service.css('div.resultcell:nth-child(4)::text').extract_first().strip()
+        service_item['service_date']=service.css('div.resultcell:nth-child(5)::text').extract_first().strip()
+        service_item['pleading']=service.css('div.resultcell:nth-child(6)::text').extract_first().strip()
+        service_item['CCFN']=service.css('div.resultcell:nth-child(7)::text').extract_first().strip()
+        datadict['case_no']['service'].append(service_item)
+
+    for appeal in resp.css('#data_6 .resultgroup .resultrow'):
+        appeal_item=dict()
+        appeal_item['party_number']=appeal.css('div.resultcell:nth-child(1)::text').extract_first().strip()
+        appeal_item['appealed_doc']=appeal.css('div.resultcell:nth-child(2)::text').extract_first().strip()
+        appeal_item['date']=appeal.css('div.resultcell:nth-child(3)::text').extract_first().strip()
+        appeal_item['court']=appeal.css('div.resultcell:nth-child(4)::text').extract_first().strip()
+        datadict['case_no']['appeals'].append(appeal_item)
+
+    for appeal in resp.css('#data_6 .resultgroup .resultaltrow'):
+        appeal_item=dict()
+        appeal_item['party_number']=appeal.css('div.resultcell:nth-child(1)::text').extract_first().strip()
+        appeal_item['appealed_doc']=appeal.css('div.resultcell:nth-child(2)::text').extract_first().strip()
+        appeal_item['date']=appeal.css('div.resultcell:nth-child(3)::text').extract_first().strip()
+        appeal_item['court']=appeal.css('div.resultcell:nth-child(4)::text').extract_first().strip()
+        datadict['case_no']['appeals'].append(appeal_item)
+
+    for cost in resp.css('#data_7 .resultgroup .resultrow'):
+        cost_item=dict()
+        cost_item['party_number']=cost.css('div.resultcell:nth-child(1)::text').extract_first().strip()
+        cost_item['cost_number']=cost.css('div.resultcell:nth-child(2)::text').extract_first().strip()
+        cost_item['date']=cost.css('div.resultcell:nth-child(3)::text').extract_first().strip()
+        cost_item['paid']=cost.css('div.resultcell:nth-child(4)::text').extract_first().strip()
+        cost_item['refund']=cost.css('div.resultcell:nth-child(5)::text').extract_first().strip()
+        cost_item['recipt_number']=cost.css('div.resultcell:nth-child(6)::text').extract_first().strip()
+        datadict['case_no']['costs'].append(cost_item)
+
+    for cost in resp.css('#data_7 .resultgroup .resultaltrow'):
+        cost_item=dict()
+        cost_item['party_number']=cost.css('div.resultcell:nth-child(1)::text').extract_first().strip()
+        cost_item['cost_number']=cost.css('div.resultcell:nth-child(2)::text').extract_first().strip()
+        cost_item['date']=cost.css('div.resultcell:nth-child(3)::text').extract_first().strip()
+        cost_item['paid']=cost.css('div.resultcell:nth-child(4)::text').extract_first().strip()
+        cost_item['refund']=cost.css('div.resultcell:nth-child(5)::text').extract_first().strip()
+        cost_item['recipt_number']=cost.css('div.resultcell:nth-child(6)::text').extract_first().strip()
+        datadict['case_no']['costs'].append(cost_item)
+
+    for disposition in resp.css('#data_8 .resultgroup .resultrow'):
+        disposition_item=dict()
+        disposition_item['party_number']=disposition.css('div.resultcell:nth-child(1)::text').extract_first().strip()
+        disposition_item['type']=disposition.css('div.resultcell:nth-child(2)::text').extract_first().strip()
+        disposition_item['file_date']=disposition.css('div.resultcell:nth-child(3)::text').extract_first().strip()
+        disposition_item['disp_date']=disposition.css('div.resultcell:nth-child(4)::text').extract_first().strip()
+        disposition_item['nunc_pro_tunc']=disposition.css('div.resultcell:nth-child(5)::text').extract_first().strip()
+        disposition_item['judge']=disposition.css('div.resultcell:nth-child(6)::text').extract_first().strip()
+        disposition_item['CCFN']=disposition.css('div.resultcell:nth-child(7)::text').extract_first().strip()
+        datadict['case_no']['disposition'].append(disposition_item)
+
+    for disposition in resp.css('#data_8 .resultgroup .resultaltrow'):
+        disposition_item=dict()
+        disposition_item['party_number']=disposition.css('div.resultcell:nth-child(1)::text').extract_first().strip()
+        disposition_item['type']=disposition.css('div.resultcell:nth-child(2)::text').extract_first().strip()
+        disposition_item['file_date']=disposition.css('div.resultcell:nth-child(3)::text').extract_first().strip()
+        disposition_item['disp_date']=disposition.css('div.resultcell:nth-child(4)::text').extract_first().strip()
+        disposition_item['nunc_pro_tunc']=disposition.css('div.resultcell:nth-child(5)::text').extract_first().strip()
+        disposition_item['judge']=disposition.css('div.resultcell:nth-child(6)::text').extract_first().strip()
+        disposition_item['CCFN']=disposition.css('div.resultcell:nth-child(7)::text').extract_first().strip()
+        datadict['case_no']['disposition'].append(disposition_item)
+    file_json_list.append(datadict)
+
+
+
+
+
+
 
 def getresults():
     data = copy.deepcopy(FormData)
@@ -88,6 +277,7 @@ def getresults():
                 break
             try:
                 item['CaseNumber'] = resp.css('#resulthits #row_{} .resultcell ::text'.format(i)).extract()[3:][10]
+                getjsondata_ind_case(item['CaseNumber'])
             except:
                 break
             try:
@@ -97,6 +287,8 @@ def getresults():
             i=i+1
             writer.writerow(item)
             file.flush()
+    # for dictionary in file_json_list:
+    json.dump(fp=file_json,obj=file_json_list)
 
 
 if __name__ == '__main__':

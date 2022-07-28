@@ -35,9 +35,7 @@ class Carvana(scrapy.Spider):
                              meta={"proxy": "https://144.217.101.245:3129"})
         for page_no in range(2, 5):
             link = 'https://www.carvana.com/cars?page={}'.format(page_no)
-            yield scrapy.Request(url=link, callback=self.parse,
-                                 headers={"User-Agent": "Chrome/84.0.4147.89"},
-                                 meta={"proxy": "https://144.217.101.245:3129"})
+            yield scrapy.Request(url=link, callback=self.parse,headers={"User-Agent": "Chrome/84.0.4147.89"},meta={"proxy": "https://144.217.101.245:3129"})
 
 
     def parse(self, response):

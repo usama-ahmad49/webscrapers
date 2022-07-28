@@ -16,7 +16,7 @@ class YoutubeSpider(scrapy.Spider):
         yt.extract_all()
         yt.dump()  # dumps to .json
         ytreport=youtubeReport
-        ytreport.parse()
+        ytreport.parse(,
         for key, value in yt.video_data.items():
             item = dict()
             item['channelViews'] = yt.channel_statistics['viewCount']

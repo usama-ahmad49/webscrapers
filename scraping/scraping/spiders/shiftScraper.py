@@ -1,6 +1,17 @@
+try:
+    from pkg_resources import get_distribution
+    import pkg_resources.py2_warn
+except ImportError:
+    pass
+
 import json
 import csv
 import scrapy
+
+
+
+from scrapy.crawler import CrawlerProcess
+
 
 csvheaders=['year', 'make', 'model', 'trim', 'mileage','tag', 'price']
 file=open('shiftScraper.csv','w',newline='',encoding='utf-8')
@@ -75,3 +86,9 @@ class shitfScraper(scrapy.Spider):
             file.flush()
 
         yield item
+process = CrawlerProcess({
+    'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'
+})
+
+process.crawl(shitfScraper)
+process.start()
