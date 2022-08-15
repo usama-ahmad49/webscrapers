@@ -114,8 +114,8 @@ goatheaders = {
     "x-nextjs-data": "1"
 }
 
-ACCESS_KEY = 'AKIARRCEQIKEZ6VE4PXG'
-SECRET_KEY = '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'
+ACCESS_KEY = 'xxxxxxxxxxxxxx'
+SECRET_KEY = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 
 
 def upload_to_aws(local_file, bucket, s3_file):
