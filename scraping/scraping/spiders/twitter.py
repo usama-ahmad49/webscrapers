@@ -1,11 +1,14 @@
 import requests
 import json
 import scrapy
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.by import By
 import time
+import scrapy
 from seleniumwire import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 
 def main():
@@ -14,18 +17,18 @@ def main():
     driver = webdriver.Chrome(seleniumwire_options=options)
     driver.maximize_window()
     driver.get('https://twitter.com/')
-    time.sleep(2)
-
+    time.sleep(1)
+    WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'div.css-901oao.r-1awozwy.r-1cvl2hr.r-6koalj.r-18u37iz')))
     driver.find_element(By.CSS_SELECTOR, 'div.css-901oao.r-1awozwy.r-1cvl2hr.r-6koalj.r-18u37iz').click()
-    time.sleep(3)
-
-    inputEmail = driver.find_element(By.CSS_SELECTOR, 'input.r-30o5oe.r-1niwhzg.r-17gur6a.r-1yadl64.r-deolkf')
-    time.sleep(2)
+    time.sleep(1)
+    WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'input[autocomplete="username"]')))
+    inputEmail = driver.find_element(By.CSS_SELECTOR, 'input[autocomplete="username"]')
     inputEmail.send_keys('rixtysoft01@gmx.com')
-    time.sleep(2)
+    time.sleep(0.5)
     inputEmail.send_keys(Keys.ENTER)
     try:
-        inputuser = driver.find_element(By.CSS_SELECTOR, 'input.r-30o5oe.r-1niwhzg.r-17gur6a.r-1yadl64.r-deolkf')
+        WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'input[data-testid="ocfEnterTextTextInput"]')))
+        inputuser = driver.find_element(By.CSS_SELECTOR, 'input[data-testid="ocfEnterTextTextInput"]')
         time.sleep(2)
         inputuser.send_keys('samiyaahmad16')
         time.sleep(2)
