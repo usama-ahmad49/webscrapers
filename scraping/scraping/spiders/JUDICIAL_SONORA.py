@@ -7,33 +7,21 @@ import scrapy
 from scrapy.crawler import CrawlerProcess
 
 '''headers and cookies necessary for the scraper to work'''
-cookies = {
-    'PHPSESSID': 'idfhb84l6enp07b0dq8m4vrcg4',
-    '_ga': 'GA1.3.1313228774.1659800930',
-    '_gid': 'GA1.3.1472182247.1659800930',
-    'twk_idm_key': '6GsWd6hdPGm6gb43Bu6ei',
-    'TawkConnectionTime': '0',
-}
+cookies = {'PHPSESSID': 'idfhb84l6enp07b0dq8m4vrcg4', '_ga': 'GA1.3.1313228774.1659800930',
+           '_gid': 'GA1.3.1472182247.1659800930', 'twk_idm_key': '6GsWd6hdPGm6gb43Bu6ei', 'TawkConnectionTime': '0', }
 
-headers = {
-    'Accept': 'application/json, text/javascript, */*; q=0.01',
-    'Accept-Language': 'en-US,en;q=0.9,ar;q=0.8',
-    'Connection': 'keep-alive',
-    'Content-Type': 'multipart/form-data; boundary=----WebKitFormBoundaryR92UUwRbDuvoKA5r',
-    # Requests sorts cookies= alphabetically
-    # 'Cookie': 'PHPSESSID=idfhb84l6enp07b0dq8m4vrcg4; _ga=GA1.3.1313228774.1659800930; _gid=GA1.3.1472182247.1659800930; twk_idm_key=6GsWd6hdPGm6gb43Bu6ei; TawkConnectionTime=0',
-    'DNT': '1',
-    'Origin': 'https://adison.stjsonora.gob.mx',
-    'Referer': 'https://adison.stjsonora.gob.mx/Publicacion/ListaAcuerdos/',
-    'Sec-Fetch-Dest': 'empty',
-    'Sec-Fetch-Mode': 'cors',
-    'Sec-Fetch-Site': 'same-origin',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36',
-    'X-Requested-With': 'XMLHttpRequest',
-    'sec-ch-ua': '"Chromium";v="104", " Not A;Brand";v="99", "Google Chrome";v="104"',
-    'sec-ch-ua-mobile': '?0',
-    'sec-ch-ua-platform': '"Windows"',
-}
+headers = {'Accept': 'application/json, text/javascript, */*; q=0.01', 'Accept-Language': 'en-US,en;q=0.9,ar;q=0.8',
+           'Connection': 'keep-alive',
+           'Content-Type': 'multipart/form-data; boundary=----WebKitFormBoundaryR92UUwRbDuvoKA5r',
+           # Requests sorts cookies= alphabetically
+           # 'Cookie': 'PHPSESSID=idfhb84l6enp07b0dq8m4vrcg4; _ga=GA1.3.1313228774.1659800930; _gid=GA1.3.1472182247.1659800930; twk_idm_key=6GsWd6hdPGm6gb43Bu6ei; TawkConnectionTime=0',
+           'DNT': '1', 'Origin': 'https://adison.stjsonora.gob.mx',
+           'Referer': 'https://adison.stjsonora.gob.mx/Publicacion/ListaAcuerdos/', 'Sec-Fetch-Dest': 'empty',
+           'Sec-Fetch-Mode': 'cors', 'Sec-Fetch-Site': 'same-origin',
+           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36',
+           'X-Requested-With': 'XMLHttpRequest',
+           'sec-ch-ua': '"Chromium";v="104", " Not A;Brand";v="99", "Google Chrome";v="104"', 'sec-ch-ua-mobile': '?0',
+           'sec-ch-ua-platform': '"Windows"', }
 
 dateNow = datetime.datetime.now().strftime("%Y/%m/%d")
 TimeNow = datetime.datetime.now().isoformat().split('T')[-1]
@@ -87,8 +75,7 @@ class JudicialSonoraSpider(scrapy.Spider):
             try:
                 entidad = [v for v in categoryList if v.split('*')[0] == uuid[1]][0].split('*')[-1]
                 yield scrapy.Request(url=url, method='POST', dont_filter=True, cookies=cookies, headers=headers,
-                                     body=data,
-                                     meta={'entidad': entidad, 'juzgado': uuid[2], 'fecha': fecha},
+                                     body=data, meta={'entidad': entidad, 'juzgado': uuid[2], 'fecha': fecha},
                                      callback=self.parse)  # yield is used to send the request to the spider
             except:
                 pass
@@ -119,11 +106,41 @@ class JudicialSonoraSpider(scrapy.Spider):
                         item['actor'] = [v for v in data['Partes'].split('.-') if v != '' if v != ' '][1].split('VS')[
                             0].strip().upper()
                         item['demandado'] = \
-                        [v for v in data['Partes'].split('.-') if v != '' if v != ' '][1].split('VS')[
-                            -1].strip().upper()
+                            [v for v in data['Partes'].split('.-') if v != '' if v != ' '][1].split('VS')[
+                                -1].strip().upper()
                     else:
                         item['actor'] = [v for v in data['Partes'].split('.-') if v != '' if v != ' '][1].split('VS')[
                             0].strip().upper().replace('-', '').strip()
+                        item['demandado'] = ''
+                except:
+                    item['actor'] = ''
+                    item['demandado'] = ''
+            elif '.' in data['Partes'] and '.-' not in data['Partes']:
+                try:
+                    if 'PRESENTADO POR' in data['Partes']:
+                        item['actor'] = data['Partes'].split('PRESENTADO POR')[-1].split('DERIVADO')[0]
+                        item['demandado'] = ''
+                    elif 'PROMOVIDO POR' in data['Partes'] and 'VS' in data['Partes']:
+                        item['actor'] = data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[0]
+                        item['demandado'] = data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[1]
+                    elif 'PROMOVIDO POR' in data['Partes'] and 'EN CONTRA DE' in data['Partes']:
+                        item['actor'] = data['Partes'].split('PROMOVIDO POR')[-1].split('EN CONTRA DE')[0]
+                        item['demandado'] = data['Partes'].split('PROMOVIDO POR')[-1].split('EN CONTRA DE')[-1]
+                    elif 'PROMOVIDO POR' in data['Partes'] and 'EN CONTRA DE' not in data['Partes']:
+                        item['actor'] = data['Partes'].split('PROMOVIDO POR')[-1]
+                        item['demandado'] = ''
+                    elif 'PROMOVIDO POR' not in data['Partes'] and 'EN CONTRA DE' in data['Partes']:
+                        item['actor'] = ''
+                        item['demandado'] = data['Partes'].split('EN CONTRA DE')[-1]
+                    elif len([v for v in data['Partes'].split('.') if v != '' if v != ' '][1].split('VS')) == 2:
+                        item['actor'] = [v for v in data['Partes'].split('.') if v != '' if v != ' '][1].split('VS')[
+                            0].strip().upper()
+                        item['demandado'] = \
+                            [v for v in data['Partes'].split('.') if v != '' if v != ' '][1].split('VS')[
+                                -1].strip().upper()
+                    else:
+                        item['actor'] = [v for v in data['Partes'].split('.') if v != '' if v != ' '][1].split('VS')[
+                            0].strip().upper()
                         item['demandado'] = ''
                 except:
                     item['actor'] = ''
@@ -146,8 +163,8 @@ class JudicialSonoraSpider(scrapy.Spider):
                         item['actor'] = [v for v in data['Partes'].split('-') if v != '' if v != ' '][1].split('VS')[
                             0].strip().upper()
                         item['demandado'] = \
-                        [v for v in data['Partes'].split('-') if v != '' if v != ' '][1].split('VS')[
-                            -1].strip().upper()
+                            [v for v in data['Partes'].split('-') if v != '' if v != ' '][1].split('VS')[
+                                -1].strip().upper()
                     else:
                         item['actor'] = [v for v in data['Partes'].split('-') if v != '' if v != ' '][1].split('VS')[
                             0].strip().upper().replace('-', '').strip()
@@ -231,8 +248,6 @@ class JudicialSonoraSpider(scrapy.Spider):
 
 
 if __name__ == '__main__':
-    process = CrawlerProcess({
-        'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'
-    })
+    process = CrawlerProcess({'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'})
     process.crawl(JudicialSonoraSpider)
     process.start()  # the script will block here until the crawling is finished
