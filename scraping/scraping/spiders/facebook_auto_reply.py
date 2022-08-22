@@ -8,8 +8,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 if __name__ == '__main__':
-    username = 'rixtysoft01@gmx.com'
-    password = 'qwerty1234uiop'
+    username = '**********'
+    password = '******'
 
     options = Options()
     options.add_argument('--disable-notifications')
@@ -24,6 +24,32 @@ if __name__ == '__main__':
 
     driver.get('https://www.facebook.com/marketplace/inbox')
     time.sleep(3)
-    WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'div[role="tablist"] div[aria-selected="true"]')))
+    WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'div[aria-label="Collection of Marketplace items"]')))
+    driver.find_element(By.CSS_SELECTOR,'div[aria-label="Collection of Marketplace items"]')
+    time.sleep(3)
+
+    for messages in driver.find_elements(By.CSS_SELECTOR,'div[aria-label="Collection of Marketplace items"] div[data-visualcompletion="ignore-dynamic"]')[1:]:
+        messages.click()
+        time.sleep(3)
+        driver.find_element(By.CSS_SELECTOR,'div[role="textbox"]').click()
+        time.sleep(1)
+        driver.find_element(By.CSS_SELECTOR,'div[role="textbox"]').clear()
+        time.sleep(1)
+        driver.find_element(By.CSS_SELECTOR,'div[role="textbox"]').send_keys('Automated message')
+        time.sleep(1)
+        driver.find_element(By.CSS_SELECTOR,'div[role="textbox"]').send_keys(Keys.ENTER)
+        time.sleep(1)
+
+
+
+        driver.find_element(By.CSS_SELECTOR,'div[aria-label="Close chat"]').click()
+        time.sleep(3)
+
+    driver.find_element(By.CSS_SELECTOR, 'svg[aria-label="Your profile"]').click()
+    time.sleep(1)
+    driver.find_element(By.CSS_SELECTOR, 'div[data-visualcompletion="ignore-dynamic"][role="listitem"][data-nocookies="true"]').click()
+
+    driver.quit()
+
 
 
