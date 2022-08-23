@@ -233,17 +233,19 @@ class stockxdata(scrapy.Spider):
         "ZYTE_SMARTPROXY_ENABLED": True,
         "ZYTE_SMARTPROXY_APIKEY": 'ef2e0ff4f5b24a82a8e715ad869af33a',
         'HTTPCACHE_ENABLED': True,
-        'HTTPCACHE_DIR': os.path.join(cwd, "cache")
+        'HTTPCACHE_DIR': os.path.join(cwd, "cache"),
+        'RETRY_TIMES': 10,
+        'RETRY_HTTP_CODES': [500, 502, 503, 504, 400, 403, 404, 408]
     }
 
     def start_requests(self):
-        # producturl = f'https://stockx.com/api/products/air-jordan-1-mid-greyscale-gs?includes=market&currency=USD'
+        # producturl = f'https://stockx.com/api/products/adidas-yeezy-boost-350-v2-core-black-red-2017?includes=market&currency=USD'
         # # producturl = f'https://stockx.com/api/products/{urlKey}?includes=market&currency=USD'
         # yield scrapy.Request(url=producturl, headers=headers, callback=self.parse_data)
 
-        brands = ['nike', 'air jordan', 'adidas', 'new balance']
-        for brand in brands[:1]:
-            for i in range(1, 2):
+        brands = ['air jordan', 'nike', 'adidas', 'new balance']
+        for brand in brands:
+            for i in range(1, 26):
                 url = f'https://stockx.com/api/browse?_tags={brand}&browseVerticals=sneakers&page={i}&propsToRetrieve[][]=id&propsToRetrieve[][]=uuid&propsToRetrieve[][]=childId&propsToRetrieve[][]=title&propsToRetrieve[][]=media.thumbUrl&propsToRetrieve[][]=media.smallImageUrl&propsToRetrieve[][]=urlKey&propsToRetrieve[][]=productCategory&propsToRetrieve[][]=releaseDate&propsToRetrieve[][]=market.lowestAsk&propsToRetrieve[][]=market.highestBid&propsToRetrieve[][]=brand&propsToRetrieve[][]=colorway&propsToRetrieve[][]=condition&propsToRetrieve[][]=description&propsToRetrieve[][]=shoe&propsToRetrieve[][]=retailPrice&propsToRetrieve[][]=market.lastSale&propsToRetrieve[][]=market.lastSaleValue&propsToRetrieve[][]=market.lastSaleDate&propsToRetrieve[][]=market.bidAskData&propsToRetrieve[][]=market.changeValue&propsToRetrieve[][]=market.changePercentage&propsToRetrieve[][]=market.salesLastPeriod&propsToRetrieve[][]=market.volatility&propsToRetrieve[][]=market.pricePremium&propsToRetrieve[][]=market.averageDeadstockPrice&propsToRetrieve[][]=market.salesThisPeriod&propsToRetrieve[][]=market.deadstockSold&propsToRetrieve[][]=market.lastHighestBidTime&propsToRetrieve[][]=market.lastLowestAskTime&propsToRetrieve[][]=market.salesInformation&facetsToRetrieve[]=%7B%7D'
                 yield scrapy.Request(url=url, method='GET', dont_filter=True, cookies=cookies, headers=headers)
 
@@ -290,11 +292,11 @@ class stockxdata(scrapy.Spider):
         # item['_id'] = product['id']
         if '(' in product['name']:
             Pname = product['name'].split('(')[0].strip()
-            extraName = '(' + product['name'].split('(')[-1].strip()
+            extraName = '(' + product['name'].split('(')[-1].strip().split('/')[-1]
         else:
             Pname = product['name']
             extraName = ''
-        item['name'] = (product['shoe'] + " '" + Pname + "' " + extraName).replace('/','_').replace('\\','_')
+        item['name'] = (product['shoe'] + " '" + Pname + "' " + extraName).strip()
         item['description'] = product['description']
         item['brand'] = product['brand']
         if 'men' in gender:
