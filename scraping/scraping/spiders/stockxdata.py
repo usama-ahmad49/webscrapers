@@ -222,6 +222,10 @@ CollectionsList = ['Jordan 1 High', 'Jordan 1 Low', 'Jordan 2', 'Jordan 3', 'Jor
                    'Blazer', 'Air Max', 'Presto', 'Slide', 'Basketball', 'Men', 'Women', 'Grade School']
 
 Finaldict = []
+
+with open('ALready_Existing_UrlKeys.txt', 'r', encoding='utf-8') as KeysFile:
+    ALready_Existing_UrlKeys = KeysFile.read().split('\n')
+New_UrlKeys_Found = []
 class stockxdata(scrapy.Spider):
     name = "stockxdata"
     custom_settings = {
@@ -244,14 +248,14 @@ class stockxdata(scrapy.Spider):
         # yield scrapy.Request(url=producturl, headers=headers, callback=self.parse_data)
 
         brands = ['air jordan', 'nike', 'adidas', 'new balance']
-        for brand in brands:
-            for i in range(1, 26):
+        for brand in brands[:1]:
+            for i in range(1, 2):
                 url = f'https://stockx.com/api/browse?_tags={brand}&browseVerticals=sneakers&page={i}&propsToRetrieve[][]=id&propsToRetrieve[][]=uuid&propsToRetrieve[][]=childId&propsToRetrieve[][]=title&propsToRetrieve[][]=media.thumbUrl&propsToRetrieve[][]=media.smallImageUrl&propsToRetrieve[][]=urlKey&propsToRetrieve[][]=productCategory&propsToRetrieve[][]=releaseDate&propsToRetrieve[][]=market.lowestAsk&propsToRetrieve[][]=market.highestBid&propsToRetrieve[][]=brand&propsToRetrieve[][]=colorway&propsToRetrieve[][]=condition&propsToRetrieve[][]=description&propsToRetrieve[][]=shoe&propsToRetrieve[][]=retailPrice&propsToRetrieve[][]=market.lastSale&propsToRetrieve[][]=market.lastSaleValue&propsToRetrieve[][]=market.lastSaleDate&propsToRetrieve[][]=market.bidAskData&propsToRetrieve[][]=market.changeValue&propsToRetrieve[][]=market.changePercentage&propsToRetrieve[][]=market.salesLastPeriod&propsToRetrieve[][]=market.volatility&propsToRetrieve[][]=market.pricePremium&propsToRetrieve[][]=market.averageDeadstockPrice&propsToRetrieve[][]=market.salesThisPeriod&propsToRetrieve[][]=market.deadstockSold&propsToRetrieve[][]=market.lastHighestBidTime&propsToRetrieve[][]=market.lastLowestAskTime&propsToRetrieve[][]=market.salesInformation&facetsToRetrieve[]=%7B%7D'
                 yield scrapy.Request(url=url, method='GET', dont_filter=True, cookies=cookies, headers=headers)
 
     def parse(self, response, **kwargs):
         Jd = json.loads(response.text)
-        for product in Jd['Products'][:5]:
+        for product in Jd['Products'][:7]:
             urlKey = product['urlKey']
             # producturl = f'https://stockx.com/api/products/nike-dunk-low-white-black-2021-w?includes=market&currency=USD'
             producturl = f'https://stockx.com/api/products/{urlKey}?includes=market&currency=USD'
@@ -260,6 +264,12 @@ class stockxdata(scrapy.Spider):
     def parse_data(self, response):
         JData = json.loads(response.text)
         product = JData['Product']
+
+        if product['urlKey'] in ALready_Existing_UrlKeys:
+            return
+        else:
+            New_UrlKeys_Found.append(product['urlKey'])
+
         item = dict()
         size = []
         # for child in (list(product['children'].values())):
@@ -321,6 +331,10 @@ class stockxdata(scrapy.Spider):
     def close(spider, reason):
         with open('sample_json.json', 'w', encoding='utf-8') as filewrite:
             json.dump(Finaldict, filewrite)
+
+        with open('ALready_Existing_UrlKeys.txt', 'a',encoding='utf-8') as AEUK:
+            for key in New_UrlKeys_Found:
+                AEUK.write(key+'\n')
 
 
 process = CrawlerProcess({
