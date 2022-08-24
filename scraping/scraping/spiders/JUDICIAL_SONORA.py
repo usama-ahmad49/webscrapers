@@ -229,14 +229,15 @@ class JudicialSonoraSpider(scrapy.Spider):
             except:
                 if item['juzgado'] == 'JUZGADO PRIMERO DE EJECUCION DE SANCIONES DE HERMOSILLO':
                     item['materia'] = 'PENAL'
-                item['materia'] = ''
+                else:
+                    item['materia'] = ''
             item['submateria'] = ''
             item['fecha_sentencia'] = ''
             item['sentido_sentencia'] = ''
             item['resoluciones'] = ''
             item['origen'] = 'PODER JUDICIAL DEL ESTADO DE SONORA'
             item['fecha_insercion'] = dateNow
-            item['fecha_tecnica'] = dateNow
+            item['fecha_tecnica'] = datetime.datetime.strptime(item['fecha'], '%Y/%m/%d').isoformat()
             OutPutList.append(item)
 
     def close(spider, reason):
