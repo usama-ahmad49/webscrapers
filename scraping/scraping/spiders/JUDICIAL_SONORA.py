@@ -90,7 +90,7 @@ class JudicialSonoraSpider(scrapy.Spider):
                         item['actor'] = data['Partes'].split('PRESENTADO POR')[-1].split('DERIVADO')[0]
                         item['demandado'] = ''
                     elif 'PROMOVIDO POR' in data['Partes'] and 'VS' in data['Partes']:
-                        item['actor'] = data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[0]
+                        item['actor'] = data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[0].strip()
                         item['demandado'] = data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[1]
                     elif 'PROMOVIDO POR' in data['Partes'] and 'EN CONTRA DE' in data['Partes']:
                         item['actor'] = data['Partes'].split('PROMOVIDO POR')[-1].split('EN CONTRA DE')[0]
