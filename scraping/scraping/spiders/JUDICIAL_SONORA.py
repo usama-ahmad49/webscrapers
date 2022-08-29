@@ -52,7 +52,7 @@ class JudicialSonoraSpider(scrapy.Spider):
     name = "judicial_sonora"
 
     def start_requests(self):
-        fecha = '2022/07/06'
+        fecha = '2022/08/24'
         categoryList = []
         response = scrapy.Selector(text=requests.get('https://adison.stjsonora.gob.mx/Publicacion/ListaAcuerdos/').text)
         IDs = []
@@ -89,6 +89,9 @@ class JudicialSonoraSpider(scrapy.Spider):
                     if 'PRESENTADO POR' in data['Partes']:
                         item['actor'] = data['Partes'].split('PRESENTADO POR')[-1].split('DERIVADO')[0]
                         item['demandado'] = ''
+                    elif 'INTERPUESTO POR'in data['Partes']:
+                        item['actor'] = data['Partes'].split('INTERPUESTO POR')[-1]
+                        item['demandado'] = ''
                     elif 'PROMOVIDO POR' in data['Partes'] and 'VS' in data['Partes']:
                         item['actor'] = data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[0].strip()
                         item['demandado'] = data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[1]
@@ -118,6 +121,9 @@ class JudicialSonoraSpider(scrapy.Spider):
                 try:
                     if 'PRESENTADO POR' in data['Partes']:
                         item['actor'] = data['Partes'].split('PRESENTADO POR')[-1].split('DERIVADO')[0]
+                        item['demandado'] = ''
+                    elif 'INTERPUESTO POR'in data['Partes']:
+                        item['actor'] = data['Partes'].split('INTERPUESTO POR')[-1]
                         item['demandado'] = ''
                     elif 'PROMOVIDO POR' in data['Partes'] and 'VS' in data['Partes']:
                         item['actor'] = data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[0]
@@ -149,6 +155,12 @@ class JudicialSonoraSpider(scrapy.Spider):
                     if 'PRESENTADO POR' in data['Partes']:
                         item['actor'] = data['Partes'].split('PRESENTADO POR')[-1].split('DERIVADO')[0]
                         item['demandado'] = ''
+                    elif 'INTERPUESTO POR'in data['Partes']:
+                        item['actor'] = data['Partes'].split('INTERPUESTO POR')[-1]
+                        item['demandado'] = ''
+                    elif 'PROMOVIDO POR' in data['Partes'] and 'VS' in data['Partes']:
+                        item['actor'] = data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[0]
+                        item['demandado'] = data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[1]
                     elif 'PROMOVIDO POR' in data['Partes'] and 'EN CONTRA DE' in data['Partes']:
                         item['actor'] = data['Partes'].split('PROMOVIDO POR')[-1].split('EN CONTRA DE')[0]
                         item['demandado'] = data['Partes'].split('PROMOVIDO POR')[-1].split('EN CONTRA DE')[-1]
@@ -178,8 +190,10 @@ class JudicialSonoraSpider(scrapy.Spider):
             item['juzgado'] = remove_accents(response.meta['juzgado'].upper())
             if '.-' in data['Partes']:
                 item['tipo'] = remove_accents(data['Partes'].split('.-')[0].upper())
-            else:
+            elif '-' in data['Partes'] and '.-' not in data['Partes']:
                 item['tipo'] = remove_accents(data['Partes'].split('-')[0].upper())
+            else:
+                item['tipo'] = remove_accents(data['Partes'].split('.')[0].upper())
             item['acuerdos'] = remove_accents(data['Sintesis'].upper())
             item['monto'] = ''
             item['fecha_presentacion'] = ''
@@ -193,36 +207,36 @@ class JudicialSonoraSpider(scrapy.Spider):
                 item['expediente_origen'] = data['Partes'].split('DERIVADO DEL EXPEDIENTE')[-1]
             else:
                 item['expediente_origen'] = ''
-            if 'FAMILIAR' in data['Partes'] or 'FAMILIAR' in data['Secretaria'] or 'FAMILIAR' in response.meta[
-                'juzgado']:
-                if 'FAMILIAR' in data['Partes']:
+            if 'FAMILIAR'.lower() in data['Partes'].lower() or 'FAMILIAR'.lower() in data['Secretaria'].lower() or 'FAMILIAR'.lower() in response.meta[
+                'juzgado'].lower():
+                if 'FAMILIAR'.lower() in data['Partes'].lower():
                     materia = 'FAMILIAR'
-                elif 'CIVIL' in data['Partes']:
+                elif 'CIVIL'.lower() in data['Partes'].lower():
                     materia = 'CIVIL'
-                elif 'PENAL' in data['Partes']:
+                elif 'PENAL'.lower() in data['Partes'].lower():
                     materia = 'PENAL'
                 else:
                     materia = 'FAMILIAR'
-            elif 'CIVIL' in data['Partes'] or 'CIVIL' in data['Secretaria'] or 'CIVIL' in response.meta[
-                'juzgado'] or 'Civiles' in response.meta['juzgado']:
-                if 'FAMILIAR' in data['Partes']:
+            elif 'CIVIL'.lower() in data['Partes'].lower() or 'CIVIL'.lower() in data['Secretaria'].lower() or 'CIVIL'.lower() in response.meta[
+                'juzgado'].lower() or 'Civiles'.lower() in response.meta['juzgado'].lower() or 'Civiles'.lower() in data['Secretaria'].lower():
+                if 'FAMILIAR'.lower() in data['Partes'].lower():
                     materia = 'FAMILIAR'
-                elif 'CIVIL' in data['Partes']:
+                elif 'CIVIL'.lower() in data['Partes'].lower():
                     materia = 'CIVIL'
-                elif 'PENAL' in data['Partes']:
+                elif 'PENAL'.lower() in data['Partes'].lower():
                     materia = 'PENAL'
                 else:
                     materia = 'CIVIL'
-            elif 'PENAL' in data['Partes'] or 'PENAL' in data['Secretaria'] or 'PENAL' in response.meta['juzgado']:
-                if 'FAMILIAR' in data['Partes']:
+            elif 'PENAL'.lower() in data['Partes'].lower() or 'PENAL'.lower() in data['Secretaria'].lower() or 'PENAL'.lower() in response.meta['juzgado'].lower() or 'Penales'.lower() in data['Secretaria'].lower():
+                if 'FAMILIAR'.lower() in data['Partes'].lower():
                     materia = 'FAMILIAR'
-                elif 'CIVIL' in data['Partes']:
+                elif 'CIVIL'.lower() in data['Partes'].lower():
                     materia = 'CIVIL'
-                elif 'PENAL' in data['Partes']:
+                elif 'PENAL'.lower() in data['Partes'].lower():
                     materia = 'PENAL'
                 else:
                     materia = 'PENAL'
-            elif 'MIXTO' in data['Partes'] or 'MIXTO' in data['Secretaria'] or 'MIXTO' in response.meta['juzgado']:
+            elif 'MIXTO'.lower() in data['Partes'].lower() or 'MIXTO'.lower() in data['Secretaria'].lower() or 'MIXTO'.lower() in response.meta['juzgado'].lower():
                 materia = 'CIVIL'
             try:
                 item['materia'] = materia
