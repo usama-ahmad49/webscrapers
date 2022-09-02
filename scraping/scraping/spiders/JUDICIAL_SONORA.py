@@ -92,6 +92,15 @@ class JudicialSonoraSpider(scrapy.Spider):
                         elif 'INTERPUESTO POR' in data['Partes']:
                             item['actor'] = remove_accents(data['Partes'].split('INTERPUESTO POR')[-1])
                             item['demandado'] = ''
+                        elif 'PROM. POR' in data['Partes']:
+                            if 'EN CONTRA DE' in data['Partes']:
+                                item['actor'] = remove_accents(
+                                    data['Partes'].split('PROM. POR')[-1].split('EN CONTRA DE')[0])
+                                item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1])
+                            elif 'EN CONTRA DE' not in data['Partes']:
+                                item['actor'] = remove_accents(data['Partes'].split('PROM. POR')[-1])
+                                item['demandado'] = ''
+
                         elif 'PROMOVIDO POR' in data['Partes'] and 'VS' in data['Partes']:
                             item['actor'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[0].strip())
                             item['demandado'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[1])
@@ -104,6 +113,7 @@ class JudicialSonoraSpider(scrapy.Spider):
                         elif 'PROMOVIDO POR' not in data['Partes'] and 'EN CONTRA DE' in data['Partes']:
                             item['actor'] = ''
                             item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1])
+
                         elif len([v for v in data['Partes'].split('.-') if v != '' if v != ' '][1].split('VS')) == 2:
                             item['actor'] = remove_accents([v for v in data['Partes'].split('.-') if v != '' if v != ' '][1].split('VS')[
                                                                0].strip().upper())
@@ -126,6 +136,14 @@ class JudicialSonoraSpider(scrapy.Spider):
                         elif 'INTERPUESTO POR' in data['Partes']:
                             item['actor'] = remove_accents(data['Partes'].split('INTERPUESTO POR')[-1])
                             item['demandado'] = ''
+                        elif 'PROM. POR' in data['Partes']:
+                            if 'EN CONTRA DE' in data['Partes']:
+                                item['actor'] = remove_accents(
+                                    data['Partes'].split('PROM. POR')[-1].split('EN CONTRA DE')[0])
+                                item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1])
+                            elif 'EN CONTRA DE' not in data['Partes']:
+                                item['actor'] = remove_accents(data['Partes'].split('PROM. POR')[-1])
+                                item['demandado'] = ''
                         elif 'PROMOVIDO POR' in data['Partes'] and 'VS' in data['Partes']:
                             item['actor'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[0])
                             item['demandado'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[1])
@@ -160,6 +178,14 @@ class JudicialSonoraSpider(scrapy.Spider):
                         elif 'INTERPUESTO POR' in data['Partes']:
                             item['actor'] = remove_accents(data['Partes'].split('INTERPUESTO POR')[-1])
                             item['demandado'] = ''
+                        elif 'PROM. POR' in data['Partes']:
+                            if 'EN CONTRA DE' in data['Partes']:
+                                item['actor'] = remove_accents(
+                                    data['Partes'].split('PROM. POR')[-1].split('EN CONTRA DE')[0])
+                                item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1])
+                            elif 'EN CONTRA DE' not in data['Partes']:
+                                item['actor'] = remove_accents(data['Partes'].split('PROM. POR')[-1])
+                                item['demandado'] = ''
                         elif 'PROMOVIDO POR' in data['Partes'] and 'VS' in data['Partes']:
                             item['actor'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[0])
                             item['demandado'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[1])
@@ -194,6 +220,15 @@ class JudicialSonoraSpider(scrapy.Spider):
                     elif 'INTERPUESTO POR' in data['Partes']:
                         item['actor'] = remove_accents(data['Partes'].split('INTERPUESTO POR')[-1])
                         item['demandado'] = ''
+                    elif 'PROM. POR' in data['Partes']:
+                        if 'EN CONTRA DE' in data['Partes']:
+                            item['actor'] = remove_accents(
+                                data['Partes'].split('PROM. POR')[-1].split('EN CONTRA DE')[0])
+                            item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1])
+                        elif 'EN CONTRA DE' not in data['Partes']:
+                            item['actor'] = remove_accents(data['Partes'].split('PROM. POR')[-1])
+                            item['demandado'] = ''
+
                     elif 'PROMOVIDO POR' in data['Partes'] and 'VS' in data['Partes']:
                         item['actor'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[0])
                         item['demandado'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[1])
@@ -222,14 +257,24 @@ class JudicialSonoraSpider(scrapy.Spider):
                     item['demandado'] = ''
 
             if 'Penales'.lower() in data['Secretaria'].lower():
-                item['actor'] = ''
-                try:
-                    item['demandado'] = remove_accents(data['Partes'].split('.-')[-2])
-                except:
+                if item['demandado'] == '':
                     try:
-                        item['demandado'] = remove_accents(data['Partes'].split('.-')[0])
+                        item['demandado'] = remove_accents(data['Partes'].split('.-')[-2])
                     except:
-                        item['demandado'] = ''
+                        try:
+                            item['demandado'] = remove_accents(data['Partes'].split('.-')[0])
+                        except:
+                            item['demandado'] = ''
+            elif 'Acuerdos Mesa Penal'.lower() in data['Secretaria'].lower():
+                if item['demandado'] == '':
+                    try:
+                        item['demandado'] = remove_accents(data['Partes'].split('.')[-2])
+                    except:
+                        try:
+                            item['demandado'] = remove_accents(data['Partes'].split('.')[0])
+                        except:
+                            item['demandado'] = ''
+
             item['entidad'] = remove_accents(response.meta['entidad'].upper())
             try:
                 item['expediente'] = remove_accents(data['TipoAsunto'] + ' ' + data['Asunto'] + '/' + data['Anio'].upper())
