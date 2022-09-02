@@ -274,6 +274,15 @@ class JudicialSonoraSpider(scrapy.Spider):
                             item['demandado'] = remove_accents(data['Partes'].split('.')[0])
                         except:
                             item['demandado'] = ''
+            elif 'Primera Secretaría (Penal)'.lower() in data['Secretaria'].lower():
+                if item['demandado'] == '':
+                    try:
+                        item['demandado'] = remove_accents(data['Partes'].split('.')[-2])
+                    except:
+                        try:
+                            item['demandado'] = remove_accents(data['Partes'].split('.')[0])
+                        except:
+                            item['demandado'] = ''
 
             item['entidad'] = remove_accents(response.meta['entidad'].upper())
             try:
@@ -293,7 +302,7 @@ class JudicialSonoraSpider(scrapy.Spider):
             except:
                 item['tipo'] = ''
             try:
-                item['acuerdos'] = remove_accents(data['Sintesis'].upper())
+                item['acuerdos'] = remove_accents(data['Sintesis'].replace('@','').upper())
             except:
                 item['acuerdos'] = ''
             item['monto'] = ''
@@ -312,7 +321,9 @@ class JudicialSonoraSpider(scrapy.Spider):
                 item['expediente_origen'] = ''
             materia = ''
             try:
-                if 'FAMILIAR'.lower() in data['Partes'].lower() or 'FAMILIAR'.lower() in data['Secretaria'].lower() or 'FAMILIAR'.lower() in response.meta[
+                if '(Penal)'.lower() in data['Secretaria'].lower():
+                    materia = 'PENAL'
+                elif 'FAMILIAR'.lower() in data['Partes'].lower() or 'FAMILIAR'.lower() in data['Secretaria'].lower() or 'FAMILIAR'.lower() in response.meta[
                     'juzgado'].lower():
                     if 'FAMILIAR'.lower() in data['Partes'].lower():
                         materia = 'FAMILIAR'
