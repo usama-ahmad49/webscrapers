@@ -2,6 +2,7 @@ import time
 
 import docx
 from selenium import webdriver
+from selenium.webdriver import ActionChains
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -66,8 +67,12 @@ if __name__ == '__main__':
         for messages in driver.find_elements(By.CSS_SELECTOR,
                                              'div[aria-label="Collection of Marketplace items"] div[data-visualcompletion="ignore-dynamic"]')[
                         1:]:
+            a = ActionChains(driver)
+            a.move_to_element(messages).perform()
+            time.sleep(1)
             messages.click()  # open message box
             time.sleep(3)
+            WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'div[role="textbox"]')))
             # click text box in message window
             driver.find_element(By.CSS_SELECTOR, 'div[role="textbox"]').click()
             time.sleep(1)
@@ -84,7 +89,10 @@ if __name__ == '__main__':
             driver.find_element(By.CSS_SELECTOR, 'div[aria-label="Close chat"]').click()
             time.sleep(3)
         # click on the profile element to show logout button
-        driver.find_element(By.CSS_SELECTOR, 'div[aria-label="Your profile"]').click()
+        try:
+            driver.find_element(By.CSS_SELECTOR, 'div[aria-label="Your profile"]').click()
+        except:
+            driver.find_element(By.CSS_SELECTOR, 'svg[aria-label="Your profile"]').click()
         time.sleep(1)
         # click logout button
         driver.find_element(By.CSS_SELECTOR,
