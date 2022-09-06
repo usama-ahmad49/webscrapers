@@ -16,7 +16,7 @@ def do_scroll(driver):
         i += 1
         if i == 20:
             i = 0
-            # time.sleep(1)
+            time.sleep(1)
             new_height = driver.execute_script("return document.body.scrollHeight")
             if new_height == last_height:
                 break
@@ -55,7 +55,7 @@ if __name__ == '__main__':
         EC.element_to_be_clickable((By.CSS_SELECTOR, 'div[data-testid="LoginForm_Login_Button"]')))
     driver.find_element(By.CSS_SELECTOR, 'div[data-testid="LoginForm_Login_Button"]').click()
     time.sleep(5)
-    a = ActionChains(driver)
+    followcount = 0
     for word in textsearchkeywords:
         driver.find_element(By.CSS_SELECTOR, 'input[aria-label="Search query"]').send_keys(word)
         time.sleep(1)
@@ -64,10 +64,26 @@ if __name__ == '__main__':
         # do_scroll(driver)
         WebDriverWait(driver, 30).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, 'div[data-testid="cellInnerDiv"] article')))
-
-        for post in driver.find_elements(By.CSS_SELECTOR, 'div[data-testid="cellInnerDiv"] article'):
-            elem = post.find_element(By.CSS_SELECTOR, 'a[role="link"]')
-            a.move_to_element(elem).perform()
-            time.sleep(0.5)
-            driver.find_element(By.ID, 'layers').find_element(By.CSS_SELECTOR, 'div[data-testid="HoverCard"] div[role="button"]').click()
+        for i in range(0,20):
+            a = ActionChains(driver)
+            for post in driver.find_elements(By.CSS_SELECTOR, 'div[data-testid="cellInnerDiv"] article'):
+                try:
+                    elem = post.find_element(By.CSS_SELECTOR, 'a[role="link"]')
+                    a.move_to_element(elem).perform()
+                    time.sleep(0.5)
+                    if driver.find_element(By.ID, 'layers').find_element(By.CSS_SELECTOR, 'div[data-testid="HoverCard"] div[role="button"]').text == 'Follow':
+                        driver.find_element(By.ID, 'layers').find_element(By.CSS_SELECTOR, 'div[data-testid="HoverCard"] div[role="button"]').click()
+                        followcount+=1
+                except:
+                    pass
+                time.sleep(3)
+                if followcount == 400:
+                    break
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            if followcount == 400:
+                break
             time.sleep(5)
+        if followcount == 400:
+            break
+
+    driver.quit()
