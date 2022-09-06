@@ -55,8 +55,10 @@ if __name__ == '__main__':
         EC.element_to_be_clickable((By.CSS_SELECTOR, 'div[data-testid="LoginForm_Login_Button"]')))
     driver.find_element(By.CSS_SELECTOR, 'div[data-testid="LoginForm_Login_Button"]').click()
     time.sleep(5)
-    followcount = 0
+    followcount = 102
     for word in textsearchkeywords:
+        driver.find_element(By.CSS_SELECTOR, 'input[aria-label="Search query"]').clear()
+        time.sleep(0.5)
         driver.find_element(By.CSS_SELECTOR, 'input[aria-label="Search query"]').send_keys(word)
         time.sleep(1)
         driver.find_element(By.CSS_SELECTOR, 'input[aria-label="Search query"]').send_keys(Keys.ENTER)
@@ -74,9 +76,10 @@ if __name__ == '__main__':
                     if driver.find_element(By.ID, 'layers').find_element(By.CSS_SELECTOR, 'div[data-testid="HoverCard"] div[role="button"]').text == 'Follow':
                         driver.find_element(By.ID, 'layers').find_element(By.CSS_SELECTOR, 'div[data-testid="HoverCard"] div[role="button"]').click()
                         followcount+=1
+                        time.sleep(3)
                 except:
                     pass
-                time.sleep(3)
+
                 if followcount == 400:
                     break
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
