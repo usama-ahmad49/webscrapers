@@ -1,6 +1,9 @@
 import time
-
+import aspose.words as aw
+import PyPDF2
+from docx2pdf import convert
 import docx
+import os
 from selenium import webdriver
 from selenium.webdriver import ActionChains
 from selenium.webdriver.chrome.options import Options
@@ -10,19 +13,25 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 if __name__ == '__main__':
+    cwd = os.getcwd()
     # open document contaning messgage for auto reply
     # we use docx library for this purpose
-    try:
-        doc = docx.Document('Auto response for Facebook Marketplace.docx')
-        AutomatedMessage = ''  # variable contains message that will be sent as reply
-        fullText = []
-        for para in doc.paragraphs:
-            fullText.append(para.text)
-        AutomatedMessage = '\r'.join(fullText)
-    except IOError:
-        # In case of any problem opening file system will print error and close itself.
-        print('error opening file')
-        exit()
+    convert("Auto response for Facebook Marketplace.docx",cwd+'\\'"Auto response for Facebook Marketplace.pdf")
+    # doc = aw.Document("Auto response for Facebook Marketplace.docx")
+    #
+    # # Save as PDF
+    # doc.save("Auto response for Facebook Marketplace.pdf")
+    # try:
+    #     doc = docx.Document('Auto response for Facebook Marketplace.docx')
+    #     AutomatedMessage = ''  # variable contains message that will be sent as reply
+    #     fullText = []
+    #     for para in doc.paragraphs:
+    #         fullText.append(para.text)
+    #     AutomatedMessage = '\r'.join(fullText)
+    # except IOError:
+    #     # In case of any problem opening file system will print error and close itself.
+    #     print('error opening file')
+    #     exit()
 
     # open file containg facebook account information
     # Informaton in file must be stored in a perticular pattern to avoid any errors
@@ -31,6 +40,10 @@ if __name__ == '__main__':
     # for adding more then one account in file:
     # add an account info in above pattern then press enter one time then add another account info in above pattern
 
+    file = open("Auto response for Facebook Marketplace.pdf", 'rb')
+    pdfReader = PyPDF2.PdfFileReader(file)
+    pageObj = pdfReader.getPage(0)
+    AutomatedMessage = pageObj.extractText()
     with open("Facebook_Accounts_file.txt", 'r', encoding='utf-8') as FAF:
         DATA = FAF.read().split('\n')
 
