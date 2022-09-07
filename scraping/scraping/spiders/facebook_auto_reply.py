@@ -1,9 +1,9 @@
-import time
-import aspose.words as aw
-import PyPDF2
-from docx2pdf import convert
-import docx
 import os
+import time
+
+import pdfplumber
+import pyperclip
+from docx2pdf import convert
 from selenium import webdriver
 from selenium.webdriver import ActionChains
 from selenium.webdriver.chrome.options import Options
@@ -16,22 +16,10 @@ if __name__ == '__main__':
     cwd = os.getcwd()
     # open document contaning messgage for auto reply
     # we use docx library for this purpose
-    convert("Auto response for Facebook Marketplace.docx",cwd+'\\'"Auto response for Facebook Marketplace.pdf")
-    # doc = aw.Document("Auto response for Facebook Marketplace.docx")
-    #
-    # # Save as PDF
-    # doc.save("Auto response for Facebook Marketplace.pdf")
-    # try:
-    #     doc = docx.Document('Auto response for Facebook Marketplace.docx')
-    #     AutomatedMessage = ''  # variable contains message that will be sent as reply
-    #     fullText = []
-    #     for para in doc.paragraphs:
-    #         fullText.append(para.text)
-    #     AutomatedMessage = '\r'.join(fullText)
-    # except IOError:
-    #     # In case of any problem opening file system will print error and close itself.
-    #     print('error opening file')
-    #     exit()
+    try:
+        convert("Auto response for Facebook Marketplace.docx", cwd + '\\'"Auto response for Facebook Marketplace.pdf")
+    except:
+        pass
 
     # open file containg facebook account information
     # Informaton in file must be stored in a perticular pattern to avoid any errors
@@ -40,10 +28,16 @@ if __name__ == '__main__':
     # for adding more then one account in file:
     # add an account info in above pattern then press enter one time then add another account info in above pattern
 
-    file = open("Auto response for Facebook Marketplace.pdf", 'rb')
-    pdfReader = PyPDF2.PdfFileReader(file)
-    pageObj = pdfReader.getPage(0)
-    AutomatedMessage = pageObj.extractText()
+    with pdfplumber.open("Auto response for Facebook Marketplace.pdf") as pdf:
+        text = pdf.pages[0]
+        Bold_text = text.filter(
+            lambda obj: (obj["object_type"] == "char" and "Bold" in obj["fontname"])).extract_text().split('\n')
+
+    textpart = text.extract_text()
+    for BT in Bold_text:
+        textpart = textpart.split(BT)[0] + '*' + BT.strip() + '* ' + textpart.split(BT)[1]
+
+    AutomatedMessage = textpart
     with open("Facebook_Accounts_file.txt", 'r', encoding='utf-8') as FAF:
         DATA = FAF.read().split('\n')
 
@@ -79,7 +73,7 @@ if __name__ == '__main__':
         # get all messages from inbox and loop over them one by one to reply to them individually
         for messages in driver.find_elements(By.CSS_SELECTOR,
                                              'div[aria-label="Collection of Marketplace items"] div[data-visualcompletion="ignore-dynamic"]')[
-                        1:]:
+                        2:]:
             a = ActionChains(driver)
             a.move_to_element(messages).perform()
             time.sleep(1)
@@ -93,7 +87,12 @@ if __name__ == '__main__':
             driver.find_element(By.CSS_SELECTOR, 'div[role="textbox"]').clear()
             time.sleep(1)
             # paste coppied automated message into the text box to be sent
-            driver.find_element(By.CSS_SELECTOR, 'div[role="textbox"]').send_keys(AutomatedMessage.replace('\n', '\r'))
+            pyperclip.copy(AutomatedMessage)
+            ctrlAction = ActionChains(driver)
+            ctrlAction.key_down(Keys.CONTROL)
+            ctrlAction.send_keys("v")
+            ctrlAction.key_up(Keys.CONTROL)
+            ctrlAction.perform()
             time.sleep(1)
             # press enter to send message
             driver.find_element(By.CSS_SELECTOR, 'div[role="textbox"]').send_keys(Keys.ENTER)
