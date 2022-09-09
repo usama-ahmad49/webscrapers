@@ -69,13 +69,17 @@ if __name__ == '__main__':
         driver.find_element(By.CSS_SELECTOR, 'input[aria-label="Search query"]').send_keys(Keys.ENTER)
         time.sleep(2)
         # do_scroll(driver)
-        WebDriverWait(driver, 30).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, 'div[data-testid="cellInnerDiv"] article')))
+        try:
+            WebDriverWait(driver, 30).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, 'div[data-testid="cellInnerDiv"] article')))
+        except:
+            continue
         for i in range(0,20):
             for post in driver.find_elements(By.CSS_SELECTOR, 'div[data-testid="cellInnerDiv"] article'):
                 a = ActionChains(driver)
                 try:
                     elem = post.find_element(By.CSS_SELECTOR, 'a[role="link"]')
+                    driver.execute_script("arguments[0].scrollIntoView(false);", elem)
                     a.move_to_element(elem).perform()
                     time.sleep(0.5)
                     if driver.find_element(By.ID, 'layers').find_element(By.CSS_SELECTOR, 'div[data-testid="HoverCard"] div[role="button"]').text == 'Follow':
