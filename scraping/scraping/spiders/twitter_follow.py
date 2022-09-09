@@ -55,7 +55,7 @@ if __name__ == '__main__':
         EC.element_to_be_clickable((By.CSS_SELECTOR, 'div[data-testid="LoginForm_Login_Button"]')))
     driver.find_element(By.CSS_SELECTOR, 'div[data-testid="LoginForm_Login_Button"]').click()
     time.sleep(5)
-    followcount = 227
+    followcount = 0
     for word in textsearchkeywords:
         driver.find_element(By.CSS_SELECTOR, 'input[aria-label="Search query"]').click()
         time.sleep(0.5)
