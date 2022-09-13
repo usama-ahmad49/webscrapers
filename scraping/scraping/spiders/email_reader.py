@@ -3,7 +3,7 @@ import os
 import pdfplumber
 import win32com.client
 from docx2pdf import convert
-
+from datetime import date
 
 def create_reply(email: object):
     # open document contating automated reply we need to send
@@ -34,6 +34,7 @@ def create_reply(email: object):
     reply.HTMLBody = data + reply.HTMLBody
     # hit send
     reply.Send()
+    replySentList.append(mail.Sender.Address)
 
 
 if __name__ == '__main__':
@@ -43,7 +44,7 @@ if __name__ == '__main__':
 
     outlook = win32com.client.Dispatch('outlook.application')  # access outlook application on windows
     mapi = outlook.GetNamespace("MAPI")  # get access to all folder in outlook application
-
+    replySentList = []
     # loop over all accounts currently logged in on outlook in windows
     for account in mapi.Accounts:
         # access inbox of the account
@@ -60,3 +61,9 @@ if __name__ == '__main__':
                 if mail.Unread:  # check if mail is unread
                     create_reply(mail)  # send reply if mail is unread
                     mail.delete()  # set mail as read.
+    today = date.today()
+    mail = outlook.CreateItem(0)
+    mail.To = 'contact@company.com'
+    mail.Subject = f"Today's Report: {today}"
+    mail.HTMLBody = f"<b>Today's Report Date: {today}<b><br><br><br>{'<br>'.join(replySentList)}<br>"
+    mail.Send()
