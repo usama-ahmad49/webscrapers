@@ -59,4 +59,4 @@ if __name__ == '__main__':
             for mail in Mails:
                 if mail.Unread:  # check if mail is unread
                     create_reply(mail)  # send reply if mail is unread
-                    mail.Unread = False  # set mail as read.
+                    mail.delete()  # set mail as read.

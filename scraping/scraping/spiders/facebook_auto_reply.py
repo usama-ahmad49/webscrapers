@@ -72,34 +72,41 @@ if __name__ == '__main__':
         time.sleep(3)
         # get all messages from inbox and loop over them one by one to reply to them individually
         for messages in driver.find_elements(By.CSS_SELECTOR,
-                                             'div[aria-label="Collection of Marketplace items"] div[data-visualcompletion="ignore-dynamic"]')[
-                        2:]:
+                                             'div[aria-label="Collection of Marketplace items"] div[data-visualcompletion="ignore-dynamic"]'):
             a = ActionChains(driver)
             a.move_to_element(messages).perform()
             time.sleep(1)
             messages.click()  # open message box
             time.sleep(3)
-            WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'div[role="textbox"]')))
-            # click text box in message window
-            driver.find_element(By.CSS_SELECTOR, 'div[role="textbox"]').click()
-            time.sleep(1)
-            # clear text box in message window to make sure no extra keystrocks sent to user
-            driver.find_element(By.CSS_SELECTOR, 'div[role="textbox"]').clear()
-            time.sleep(1)
-            # paste coppied automated message into the text box to be sent
-            pyperclip.copy(AutomatedMessage)
-            ctrlAction = ActionChains(driver)
-            ctrlAction.key_down(Keys.CONTROL)
-            ctrlAction.send_keys("v")
-            ctrlAction.key_up(Keys.CONTROL)
-            ctrlAction.perform()
-            time.sleep(1)
-            # press enter to send message
-            driver.find_element(By.CSS_SELECTOR, 'div[role="textbox"]').send_keys(Keys.ENTER)
-            time.sleep(1)
-            # now message sent! close the message window
-            driver.find_element(By.CSS_SELECTOR, 'div[aria-label="Close chat"]').click()
-            time.sleep(3)
+            try:
+                WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'div[role="textbox"]')))
+                # click text box in message window
+                driver.find_element(By.CSS_SELECTOR, 'div[role="textbox"]').click()
+                time.sleep(1)
+                # clear text box in message window to make sure no extra keystrocks sent to user
+                driver.find_element(By.CSS_SELECTOR, 'div[role="textbox"]').clear()
+                time.sleep(1)
+                # paste coppied automated message into the text box to be sent
+                pyperclip.copy(AutomatedMessage)
+                ctrlAction = ActionChains(driver)
+                ctrlAction.key_down(Keys.CONTROL)
+                ctrlAction.send_keys("v")
+                ctrlAction.key_up(Keys.CONTROL)
+                ctrlAction.perform()
+                time.sleep(1)
+                # press enter to send message
+                driver.find_element(By.CSS_SELECTOR, 'div[role="textbox"]').send_keys(Keys.ENTER)
+                time.sleep(1)
+                driver.find_element(By.CSS_SELECTOR, 'div[aria-label="Chat settings"]').click()
+                time.sleep(1)
+                driver.find_elements(By.CSS_SELECTOR, 'div[role="menu"] div[role="menuitem"]')[-2].click()
+                time.sleep(1)
+                driver.find_elements(By.CSS_SELECTOR, 'div[aria-label="Delete chat"]')[-1].click()
+                # now message sent! close the message window
+                # driver.find_element(By.CSS_SELECTOR, 'div[aria-label="Close chat"]').click()
+                time.sleep(3)
+            except:
+                pass
         # click on the profile element to show logout button
         try:
             driver.find_element(By.CSS_SELECTOR, 'div[aria-label="Your profile"]').click()
