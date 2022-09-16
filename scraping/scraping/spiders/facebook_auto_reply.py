@@ -6,18 +6,18 @@ import pyperclip
 from docx2pdf import convert
 from selenium import webdriver
 from selenium.webdriver import ActionChains
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 if __name__ == '__main__':
-    cwd = os.getcwd()
+    cwd =  'C:\\Users\\corre\\Desktop\\facebookAutomation\\'
     # open document contaning messgage for auto reply
     # we use docx library for this purpose
     try:
-        convert("Auto response for Facebook Marketplace.docx", cwd + '\\'"Auto response for Facebook Marketplace.pdf")
+        convert(cwd+"Auto response for Facebook Marketplace.docx", cwd + "Auto response for Facebook Marketplace.pdf")
     except:
         pass
 
@@ -28,7 +28,7 @@ if __name__ == '__main__':
     # for adding more then one account in file:
     # add an account info in above pattern then press enter one time then add another account info in above pattern
 
-    with pdfplumber.open("Auto response for Facebook Marketplace.pdf") as pdf:
+    with pdfplumber.open(cwd+"Auto response for Facebook Marketplace.pdf") as pdf:
         text = pdf.pages[0]
         Bold_text = text.filter(
             lambda obj: (obj["object_type"] == "char" and "Bold" in obj["fontname"])).extract_text().split('\n')
@@ -38,12 +38,12 @@ if __name__ == '__main__':
         textpart = textpart.split(BT)[0] + '*' + BT.strip() + '* ' + textpart.split(BT)[1]
 
     AutomatedMessage = textpart
-    with open("Facebook_Accounts_file.txt", 'r', encoding='utf-8') as FAF:
+    with open(cwd+"Facebook_Accounts_file.txt", 'r', encoding='utf-8') as FAF:
         DATA = FAF.read().split('\n')
 
     options = Options()
     options.add_argument('--disable-notifications')  # to disable any unwanted notification popups or alerts
-    driver = webdriver.Chrome(options=options)  # open browser
+    driver = webdriver.Firefox(options=options) # open browser
     driver.maximize_window()  # maximize window
     driver.get('https://www.facebook.com/')  # go to facebook.om login page
     for data in DATA:
@@ -73,12 +73,13 @@ if __name__ == '__main__':
         # get all messages from inbox and loop over them one by one to reply to them individually
         for messages in driver.find_elements(By.CSS_SELECTOR,
                                              'div[aria-label="Collection of Marketplace items"] div[data-visualcompletion="ignore-dynamic"]'):
-            a = ActionChains(driver)
-            a.move_to_element(messages).perform()
-            time.sleep(1)
-            messages.click()  # open message box
-            time.sleep(3)
             try:
+                a = ActionChains(driver)
+                a.move_to_element(messages).perform()
+                time.sleep(1)
+                messages.click()  # open message box
+                time.sleep(3)
+
                 WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'div[role="textbox"]')))
                 # click text box in message window
                 driver.find_element(By.CSS_SELECTOR, 'div[role="textbox"]').click()
@@ -103,7 +104,10 @@ if __name__ == '__main__':
                 time.sleep(1)
                 driver.find_elements(By.CSS_SELECTOR, 'div[aria-label="Delete chat"]')[-1].click()
                 # now message sent! close the message window
-                # driver.find_element(By.CSS_SELECTOR, 'div[aria-label="Close chat"]').click()
+                try:
+                    driver.find_element(By.CSS_SELECTOR, 'div[aria-label="Close chat"]').click()
+                except:
+                    pass
                 time.sleep(3)
             except:
                 pass

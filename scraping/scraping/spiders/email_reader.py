@@ -38,6 +38,7 @@ def create_reply(email: object):
 
 
 if __name__ == '__main__':
+
     # open file contaning subject line that we need to filter our inbox with
     subjectfile = open('outlookSubjectTofilter.txt', 'r', encoding='utf-8')
     Subjectline = subjectfile.read().split('\n')  # subject line
