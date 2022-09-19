@@ -12,8 +12,8 @@ from scrapy.crawler import CrawlerProcess
 from datetime import date
 from botocore.exceptions import NoCredentialsError
 
-ACCESS_KEY = 'AKIATJDQP5LAHRBHRAXE'
-SECRET_KEY = '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'
+ACCESS_KEY = ''
+SECRET_KEY = ''
 BUCKET = 'winesofwashingtonstate'
 
 headers = ["name", "winery-url", "imageUrl", "description", "socials", "Contact-Website", "Contact-Email", "Contact-Phone", "Contact-Address", "Contact-Region", "Contact-Contact", "wine-name", "wine-overview", "wine-photo", "wine-variety", "wine-Price-Range", "wine-AVA", "wine-list", "variety-list", "our story"]
