@@ -1,7 +1,6 @@
 import datetime
 import json
-import re
-from selenium import webdriver
+
 import requests
 import csv
 import scrapy
