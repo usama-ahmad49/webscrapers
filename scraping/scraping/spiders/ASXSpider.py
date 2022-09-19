@@ -6,8 +6,8 @@ from scrapy.crawler import CrawlerProcess
 import boto3
 from botocore.exceptions import NoCredentialsError
 
-ACCESS_KEY = 'AKIAJHYXHHMPYNHFY45A'
-SECRET_KEY = '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'
+ACCESS_KEY = 'access key'
+SECRET_KEY = 'secret key'
 
 file = open('ASXListedCompanies.csv', 'r')
 input = file.readlines()[3:]
