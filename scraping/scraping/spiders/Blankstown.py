@@ -10,8 +10,8 @@ from scrapy.crawler import CrawlerProcess
 import AirtableApi
 
 processed = []
-basekey = 'appZw5uQo3gxzMI2I'
-apikey = 'keyFHOlT21VKJdBVi'
+basekey = ''
+apikey = ''
 BASE_URL = 'https://api.airtable.com/v0'
 
 table_name = 'bankstown'
