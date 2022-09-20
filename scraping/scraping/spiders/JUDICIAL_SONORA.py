@@ -5,7 +5,7 @@ import re
 import requests
 import scrapy
 from scrapy.crawler import CrawlerProcess
-
+from under_conn import Mongoconexion
 '''headers and cookies necessary for the scraper to work'''
 cookies = {'PHPSESSID': 'idfhb84l6enp07b0dq8m4vrcg4', '_ga': 'GA1.3.1313228774.1659800930',
            '_gid': 'GA1.3.1472182247.1659800930', 'twk_idm_key': '6GsWd6hdPGm6gb43Bu6ei', 'TawkConnectionTime': '0', }
@@ -430,9 +430,14 @@ class JudicialSonoraSpider(scrapy.Spider):
             OutPutList.append(item)
 
     def close(spider, reason):
+        MyClient = Mongoconexion('Crudo')
+        client = MyClient[0]
+        database = client.get_database('Crudo')
+        collection = database.get_collection('Judicial_Sonora')
         global OutPutList
         with open('sample.json', 'w') as f:
             json.dump(OutPutList, f)
+            collection.insert_many(OutPutList)
             OutPutList = []
 
 
