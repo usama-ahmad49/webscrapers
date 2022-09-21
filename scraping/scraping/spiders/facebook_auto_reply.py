@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
     options = Options()
     options.add_argument('--disable-notifications')  # to disable any unwanted notification popups or alerts
-    driver = webdriver.Firefox(options=options) # open browser
+    driver = webdriver.Firefox(service_log_path = os.devnull,options=options)  # open browser
     driver.maximize_window()  # maximize window
     driver.get('https://www.facebook.com/')  # go to facebook.om login page
     for data in DATA:
@@ -79,7 +79,6 @@ if __name__ == '__main__':
                 time.sleep(1)
                 messages.click()  # open message box
                 time.sleep(3)
-
                 WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'div[role="textbox"]')))
                 # click text box in message window
                 driver.find_element(By.CSS_SELECTOR, 'div[role="textbox"]').click()
