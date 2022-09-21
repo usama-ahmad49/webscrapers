@@ -3,7 +3,9 @@ import time
 
 import pdfplumber
 import pyperclip
+import win32com.client
 from docx2pdf import convert
+from datetime import date
 from selenium import webdriver
 from selenium.webdriver import ActionChains
 from selenium.webdriver.firefox.options import Options
@@ -13,6 +15,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 if __name__ == '__main__':
+    today = date.today()
+    # cwd =  'E:\\Project\\pricescraperlk\\webscrapers\\webscrapers\\scraping\\scraping\\spiders\\'
     cwd =  'C:\\Users\\corre\\Desktop\\facebookAutomation\\'
     # open document contaning messgage for auto reply
     # we use docx library for this purpose
@@ -41,14 +45,17 @@ if __name__ == '__main__':
     with open(cwd+"Facebook_Accounts_file.txt", 'r', encoding='utf-8') as FAF:
         DATA = FAF.read().split('\n')
 
+    outlook = win32com.client.Dispatch('outlook.application')
     options = Options()
     options.add_argument('--disable-notifications')  # to disable any unwanted notification popups or alerts
     driver = webdriver.Firefox(service_log_path = os.devnull,options=options)  # open browser
     driver.maximize_window()  # maximize window
     driver.get('https://www.facebook.com/')  # go to facebook.om login page
+
     for data in DATA:
         if data == '':
             continue
+        replySentList = []
         username = data.split('>')[0]
         password = data.split('>')[1]
 
@@ -66,13 +73,15 @@ if __name__ == '__main__':
 
         driver.get('https://www.facebook.com/marketplace/inbox')  # go to marketplace inbox after logging in
         time.sleep(3)
-        WebDriverWait(driver, 30).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, 'div[aria-label="Collection of Marketplace items"]')))
-        driver.find_element(By.CSS_SELECTOR, 'div[aria-label="Collection of Marketplace items"]')
-        time.sleep(3)
+        try:
+            WebDriverWait(driver, 30).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, 'div[aria-label="Collection of Marketplace items"]')))
+            driver.find_element(By.CSS_SELECTOR, 'div[aria-label="Collection of Marketplace items"]')
+            time.sleep(3)
+        except:
+            continue
         # get all messages from inbox and loop over them one by one to reply to them individually
-        for messages in driver.find_elements(By.CSS_SELECTOR,
-                                             'div[aria-label="Collection of Marketplace items"] div[data-visualcompletion="ignore-dynamic"]'):
+        for messages in driver.find_elements(By.CSS_SELECTOR,'div[aria-label="Collection of Marketplace items"] div[data-visualcompletion="ignore-dynamic"]'):
             try:
                 a = ActionChains(driver)
                 a.move_to_element(messages).perform()
@@ -99,6 +108,8 @@ if __name__ == '__main__':
                 time.sleep(1)
                 driver.find_element(By.CSS_SELECTOR, 'div[aria-label="Chat settings"]').click()
                 time.sleep(1)
+                to = driver.find_element(By.CSS_SELECTOR, 'div[aria-label="Chat settings"] h1 span').text
+                replySentList.append(to)
                 driver.find_elements(By.CSS_SELECTOR, 'div[role="menu"] div[role="menuitem"]')[-2].click()
                 time.sleep(1)
                 driver.find_elements(By.CSS_SELECTOR, 'div[aria-label="Delete chat"]')[-1].click()
@@ -119,6 +130,14 @@ if __name__ == '__main__':
         # click logout button
         driver.find_element(By.CSS_SELECTOR,
                             'div[data-visualcompletion="ignore-dynamic"][role="listitem"][data-nocookies="true"]').click()
+
+        mail = outlook.CreateItem(0)
+        mail.To = 'jcisnever@gmail.com'
+        mail.Subject = f"Today's Report: {today}; for: {username.split('@')[0]}"
+        mail.HTMLBody = f"<b>Today's Report Date: {today}<b><br><br><br>{'<br>'.join(replySentList)}<br>"
+        mail.Send()
+
+
 
     # all accounts served now close browser and end program
     driver.quit()
