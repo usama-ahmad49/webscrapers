@@ -432,12 +432,15 @@ class JudicialSonoraSpider(scrapy.Spider):
     def close(spider, reason):
         MyClient = Mongoconexion('Crudo')
         client = MyClient[0]
-        database = client.get_database('Crudo')
-        collection = database.get_collection('Judicial_Sonora')
+        db = client['Crudo']
+        collection = db['Judicial_Sonora']
         global OutPutList
         with open('sample.json', 'w') as f:
             json.dump(OutPutList, f)
-            collection.insert_many(OutPutList)
+            try:
+                collection.insert_many(OutPutList)
+            except:
+                collection.insert_one(OutPutList)
             OutPutList = []
 
 
