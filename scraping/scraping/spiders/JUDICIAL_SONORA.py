@@ -1,11 +1,22 @@
+try:
+    from pkg_resources import get_distribution
+    import pkg_resources.py2_warn
+except ImportError:
+    pass
+
 import datetime
 import json
 import re
 
 import requests
 import scrapy
-from scrapy.crawler import CrawlerProcess
+from scrapy.crawler import CrawlerRunner
+from scrapy.utils.log import configure_logging
+from twisted.internet import defer
+from twisted.internet import reactor
+
 from under_conn import Mongoconexion
+
 '''headers and cookies necessary for the scraper to work'''
 cookies = {'PHPSESSID': 'idfhb84l6enp07b0dq8m4vrcg4', '_ga': 'GA1.3.1313228774.1659800930',
            '_gid': 'GA1.3.1472182247.1659800930', 'twk_idm_key': '6GsWd6hdPGm6gb43Bu6ei', 'TawkConnectionTime': '0', }
@@ -51,8 +62,13 @@ def remove_accents(string):
 class JudicialSonoraSpider(scrapy.Spider):
     name = "judicial_sonora"
 
+    def __init__(self, date, **kwargs):
+        super().__init__(**kwargs)
+        self.date = date
+
     def start_requests(self):
-        fecha = '2022/08/24'
+        fecha = self.date
+        # fecha = '2022/08/24'
         categoryList = []
         response = scrapy.Selector(text=requests.get('https://adison.stjsonora.gob.mx/Publicacion/ListaAcuerdos/').text)
         IDs = []
@@ -435,16 +451,42 @@ class JudicialSonoraSpider(scrapy.Spider):
         db = client['Crudo']
         collection = db['Judicial_Sonora']
         global OutPutList
-        with open('sample.json', 'w') as f:
-            json.dump(OutPutList, f)
-            try:
-                collection.insert_many(OutPutList)
-            except:
-                collection.insert_one(OutPutList)
-            OutPutList = []
+        # with open('sample.json', 'w') as f:
+        #     json.dump(OutPutList, f)
+        try:
+            collection.insert_many(OutPutList)
+        except:
+            collection.insert_one(OutPutList)
+        OutPutList = []
 
 
 if __name__ == '__main__':
-    process = CrawlerProcess({'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'})
-    process.crawl(JudicialSonoraSpider)
-    process.start()  # the script will block here until the crawling is finished
+    # process = CrawlerProcess({'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'})
+    # process.crawl(JudicialSonoraSpider)
+    # process.start()  # the script will block here until the crawling is finished
+    configure_logging()
+    runner = CrawlerRunner()
+
+
+    @defer.inlineCallbacks
+    def crawl():
+        with open('dateofnextrun.txt','r',encoding='utf-8') as readdate:
+            date = readdate.read()
+        while True:
+            dateobj = datetime.datetime.strptime(date, '%Y/%m/%d').date()
+            dateToday = datetime.datetime.today().date()
+            if dateobj < dateToday:
+                yield runner.crawl(JudicialSonoraSpider, date)
+                nextdateobj = dateobj + datetime.timedelta(days=1)
+                date = nextdateobj.strftime('%Y/%m/%d')
+                with open('dateofnextrun.txt','w',encoding='utf-8') as writedate:
+                    writedate.write(date)
+
+            else:
+                break
+
+        reactor.stop()
+
+
+    crawl()
+    reactor.run()
