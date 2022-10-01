@@ -10,6 +10,7 @@ import re
 
 import requests
 import scrapy
+from scrapy.crawler import CrawlerProcess
 from scrapy.crawler import CrawlerRunner
 from scrapy.utils.log import configure_logging
 from twisted.internet import defer
@@ -56,6 +57,9 @@ def remove_accents(string):
     string = re.sub(u"[ÒÓÔÕÖ]", 'O', string)
     string = re.sub(u"[ÙÚÛÜ]", 'U', string)
     string = re.sub(u"[ÝŸ]", 'Y', string)
+
+    string = re.sub(u"[()~!@#$%^&*=-]",'',string)
+    string = re.sub(u"[\t,\n,\r]", "", string)
     return string
 
 
@@ -68,7 +72,7 @@ class JudicialSonoraSpider(scrapy.Spider):
 
     def start_requests(self):
         fecha = self.date
-        # fecha = '2022/08/24'
+        # fecha = '2017/01/04'
         categoryList = []
         response = scrapy.Selector(text=requests.get('https://adison.stjsonora.gob.mx/Publicacion/ListaAcuerdos/').text)
         IDs = []
@@ -139,6 +143,10 @@ class JudicialSonoraSpider(scrapy.Spider):
                             item['actor'] = ''
                             item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1])
 
+                        elif 'VS.' in data['Partes']:
+                            item['actor'] = remove_accents([v for v in data['Partes'].split('VS.-')[0].split('.-') if v!=' ' if v != ''][-1].strip().upper())
+                            item['demandado'] = remove_accents([v for v in data['Partes'].split('VS.-')[-1].split('.-') if v!=' ' if v != ''][-1].strip().upper())
+
                         elif len([v for v in data['Partes'].split('.-') if v != '' if v != ' '][1].split('VS')) == 2:
                             item['actor'] = remove_accents(
                                 [v for v in data['Partes'].split('.-') if v != '' if v != ' '][1].split('VS')[
@@ -190,6 +198,11 @@ class JudicialSonoraSpider(scrapy.Spider):
                         elif 'PROMOVIDO POR' not in data['Partes'] and 'EN CONTRA DE' in data['Partes']:
                             item['actor'] = ''
                             item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1])
+
+                        elif 'VS.' in data['Partes']:
+                            item['actor'] = remove_accents(data['Partes'].split('VS.')[0].split('.')[-1].strip().upper())
+                            item['demandado'] = remove_accents(data['Partes'].split('VS.')[-1].split('.')[-1].strip().upper())
+
                         elif len([v for v in data['Partes'].split('.') if v != '' if v != ' '][1].split('VS')) == 2:
                             item['actor'] = remove_accents(
                                 [v for v in data['Partes'].split('.') if v != '' if v != ' '][1].split('VS')[
@@ -241,6 +254,8 @@ class JudicialSonoraSpider(scrapy.Spider):
                         elif 'PROMOVIDO POR' not in data['Partes'] and 'EN CONTRA DE' in data['Partes']:
                             item['actor'] = ''
                             item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1])
+
+
                         elif len([v for v in data['Partes'].split('-') if v != '' if v != ' '][1].split('VS')) == 2:
                             item['actor'] = remove_accents(
                                 [v for v in data['Partes'].split('-') if v != '' if v != ' '][1].split('VS')[
@@ -249,6 +264,7 @@ class JudicialSonoraSpider(scrapy.Spider):
                                 remove_accents(
                                     [v for v in data['Partes'].split('-') if v != '' if v != ' '][1].split('VS')[
                                         -1].strip().upper())
+
                         else:
                             item['actor'] = remove_accents(
                                 [v for v in data['Partes'].split('-') if v != '' if v != ' '][1].split('VS')[
@@ -339,8 +355,10 @@ class JudicialSonoraSpider(scrapy.Spider):
 
             item['entidad'] = remove_accents(response.meta['entidad'].upper())
             try:
-                item['expediente'] = remove_accents(
-                    data['TipoAsunto'] + ' ' + data['Asunto'] + '/' + data['Anio'].upper())
+                tipoAsunto = data['TipoAsunto'] or ''
+                asunto = data['Asunto'] or ''
+                anio = data['Anio'] or ''
+                item['expediente'] = remove_accents((tipoAsunto+' '+asunto+'/'+anio).upper().strip())
             except:
                 item['expediente'] = ''
             item['fecha'] = remove_accents(response.meta['fecha'].upper())
@@ -461,9 +479,12 @@ class JudicialSonoraSpider(scrapy.Spider):
 
 
 if __name__ == '__main__':
-    # process = CrawlerProcess({'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'})
+    # process = CrawlerProcess({
+    #     'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'
+    # })
     # process.crawl(JudicialSonoraSpider)
-    # process.start()  # the script will block here until the crawling is finished
+    # process.start()
+# the script will block here until the crawling is finished
     configure_logging()
     runner = CrawlerRunner()
 
