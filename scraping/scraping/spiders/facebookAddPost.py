@@ -12,22 +12,12 @@ import os
 import win32com.client
 import gmail_email_read
 
-ad_details = {
-    'bedrooms': 4,
-    'bathrooms': 2,
-    'price': 3100,
-    'address': 'Ford Rd, Kelowna, BC V1X, Canada',
-    'city': 'City Name',
-    'desc': 'djkgaf asdlkfhalsdf',
-    'pets': 'Neg'
-}
-def get_data_from_email():
-    gmail_email_read.read_email_from_gmail()
+
 
 
 if __name__ == '__main__':
-    ad_detail = get_data_from_email()
-    cwd = os.getcwd()
+    imagefoldername = 'E:\\Project\\pricescraperlk\\webscrapers\\webscrapers\\scraping\\scraping\\spiders\\attachment\\'
+    ad_detail = gmail_email_read.read_email_from_gmail()
     options = webdriver.ChromeOptions()
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option('useAutomationExtension', False)
@@ -38,18 +28,14 @@ if __name__ == '__main__':
 
     driver = webdriver.Chrome(options=options)
     driver.get('https://www.facebook.com/')
-
-    with open(cwd+"Facebook_Accounts_file.txt", 'r', encoding='utf-8') as FAF:
-        DATA = FAF.read().split('\n')
-    for data in DATA:
-        if data == '':
-            continue
-        replySentList = []
-        username = data.split('>')[0]
-        password = data.split('>')[1]
+    for Data in ad_detail:
+        DATA = Data['account'].split('>')
+        username = DATA[0]
+        password = DATA[1]
 
 
-    # driver.maximize_window()
+
+        # driver.maximize_window()
 
 
 
@@ -70,20 +56,22 @@ if __name__ == '__main__':
         driver.implicitly_wait(5)
         driver.find_element(By.CSS_SELECTOR, '.nks5qztm:nth-last-child(1) > div > span > div > a[role="link"]').click()
         time.sleep(5)
+        images = []
+        for image in Data['image']:
+            images.append(imagefoldername+image)
 
-        images = ["/home/muneeb/Downloads/Python-1.png \n /home/muneeb/Downloads/images.jpeg \n /home/muneeb/Downloads/profile.jpg"]
         driver.find_element(By.CSS_SELECTOR,
                             'div [aria-label="Marketplace"]  label > input[accept="image/*,image/heif,image/heic"]').send_keys(images[0])
 
-    # for img in images:
-    #         photo_elem = driver.find_element(By.CSS_SELECTOR, 'div [aria-label="Marketplace"]  label > input[accept="image/*,image/heif,image/heic"]')
-    #         if img != images[len(images)-1]:
-    #             photo_elem.send_keys(img + os.linesep)
-    #             time.sleep(2)
-    #         else:
-    #             photo_elem.send_keys(img)
-    #
-    #         p = 1300
+        # for img in images:
+        #         photo_elem = driver.find_element(By.CSS_SELECTOR, 'div [aria-label="Marketplace"]  label > input[accept="image/*,image/heif,image/heic"]')
+        #         if img != images[len(images)-1]:
+        #             photo_elem.send_keys(img + os.linesep)
+        #             time.sleep(2)
+        #         else:
+        #             photo_elem.send_keys(img)
+        #
+        #         p = 1300
         driver.find_element(By.CSS_SELECTOR, "[aria-label='Home for Sale or Rent']").click()
         time.sleep(3)
         driver.find_elements(By.CSS_SELECTOR, '[role="option"]')[0].click()
@@ -92,18 +80,18 @@ if __name__ == '__main__':
         time.sleep(2)
         driver.find_elements(By.CSS_SELECTOR, '[role="option"]')[1].click()
         time.sleep(2)
-        driver.find_element(By.CSS_SELECTOR, '[aria-label="Number of bedrooms"] > div > div input').send_keys(ad_details['bedrooms'])
+        driver.find_element(By.CSS_SELECTOR, '[aria-label="Number of bedrooms"] > div > div input').send_keys(Data['bedrooms'])
         time.sleep(2)
-        driver.find_element(By.CSS_SELECTOR, '[aria-label="Number of bathrooms"] > div > div input').send_keys(ad_details['bathrooms'])
+        driver.find_element(By.CSS_SELECTOR, '[aria-label="Number of bathrooms"] > div > div input').send_keys(Data['bathrooms'])
         time.sleep(2)
-        driver.find_element(By.CSS_SELECTOR, '[aria-label="Price per month"] > div > div input').send_keys(ad_details['price'])
+        driver.find_element(By.CSS_SELECTOR, '[aria-label="Price per month"] > div > div input').send_keys(Data['price'])
         time.sleep(2)
-        driver.find_element(By.CSS_SELECTOR, '[aria-label="Rental address"] > div > div input').send_keys(ad_details['address'])
+        driver.find_element(By.CSS_SELECTOR, '[aria-label="Rental address"] > div > div input').send_keys(Data['address'])
         time.sleep(2)
         driver.find_elements(By.CSS_SELECTOR, '[aria-label="10 suggested searches"] > [role="option"]')[0].click()
         time.sleep(2)
-        driver.find_element(By.CSS_SELECTOR, '[aria-label="Rental description"] > div > div textarea').send_keys(ad_details['desc'])
-        if ad_details['pets'] == 'Neg':
+        driver.find_element(By.CSS_SELECTOR, '[aria-label="Rental description"] > div > div textarea').send_keys(Data['Description'])
+        if ad_detail['pets'] == 'Neg':
             driver.find_element(By.CSS_SELECTOR, '[aria-label="Cat friendly"]').click()
             driver.find_element(By.CSS_SELECTOR, '[aria-label="Dog friendly"]').click()
 

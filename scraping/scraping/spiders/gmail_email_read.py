@@ -1,12 +1,12 @@
 import os
 
 # import pdfplumber
+import scrapy
 import win32com.client
+import urllib.request
 # from docx2pdf import convert
 from datetime import date
 
-# Define the SCOPES. If modifying it, delete the token.pickle file.
-SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
 
 def read_email_from_gmail():
@@ -14,7 +14,9 @@ def read_email_from_gmail():
     outlook = win32com.client.Dispatch('outlook.application')  # access outlook application on windows
     mapi = outlook.GetNamespace("MAPI")  # get access to all folder in outlook application
     inbox = mapi.Folders['listingsforfacebook@gmail.com'].Folders["Inbox"]
+    # Mails = list(inbox.Items.Restrict("@SQL=""http://schemas.microsoft.com/mapi/proptag/0x0037001f"f" like '%Check%'"))
     Mails = list(inbox.Items.Restrict("@SQL=""http://schemas.microsoft.com/mapi/proptag/0x0037001f"f" like '%@gmail.com>%'"))
+    adDetails = []
     for mail in Mails:
         try:
             Subjectline = mail.subject
@@ -22,10 +24,32 @@ def read_email_from_gmail():
             for attachment in mail.Attachments:
                 attachment.SaveASFile(os.path.join(outputDir, attachment.FileName))
                 print(f"attachment {attachment.FileName} saved")
+
+            selector = scrapy.Selector(text=body)
+            imagename = []
+            for image in selector.css('div img')[1:]:
+                imgURL = image.css('::attr(src)').extract_first()
+                nameimgURl = imgURL.split('/')[-1]
+                urllib.request.urlretrieve(imgURL, f"E:\\Project\\pricescraperlk\\webscrapers\\webscrapers\\scraping\\scraping\\spiders\\attachment\\{nameimgURl}.jpg")
+                imagename.append(nameimgURl)
+            item = dict()
+            item['account'] = Subjectline
+            item['image'] = imagename
+            value = ''
+            keyname = ''
+            for i in [v for v in selector.css('div:nth-child(2) ::text').extract()]:
+                if ":" in i:
+                    keyname = i.replace('\r\n', '')
+                    value = ''
+                else:
+                    value += i
+                if keyname != '':
+                    item[keyname] = value
+
+            adDetails.append(item)
         except Exception as e:
             print("error when saving the attachment:" + str(e))
 
+    return adDetails
 
 
-
-read_email_from_gmail()
