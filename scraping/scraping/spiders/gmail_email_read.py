@@ -39,8 +39,8 @@ def read_email_from_gmail():
             keyname = ''
             for i in [v for v in selector.css('div:nth-child(2) ::text').extract()]:
                 if ":" in i:
-                    keyname = i.replace('\r\n', '')
-                    value = ''
+                    keyname = i.split(':')[0].replace('\r\n', '')
+                    value = i.split(':')[-1]
                 else:
                     value += i
                 if keyname != '':
