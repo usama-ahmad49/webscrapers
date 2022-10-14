@@ -16,7 +16,7 @@ import gmail_email_read
 
 
 if __name__ == '__main__':
-    imagefoldername = 'E:\\Project\\pricescraperlk\\webscrapers\\webscrapers\\scraping\\scraping\\spiders\\attachment\\'
+    imagefoldername = 'D:\\Work\\webscrapers\\scraping\\scraping\\spiders\\attachment\\'
     ad_detail = gmail_email_read.read_email_from_gmail()
     options = webdriver.ChromeOptions()
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
@@ -29,13 +29,13 @@ if __name__ == '__main__':
     driver = webdriver.Chrome(options=options)
     driver.get('https://www.facebook.com/')
     for Data in ad_detail:
-        DATA = Data['account'].split('>')
-        username = DATA[0]
-        password = DATA[1]
+        usernamePassword = Data['account'].split('>')
+        username = usernamePassword[0]
+        password = usernamePassword[1]
 
 
 
-        # driver.maximize_window()
+        driver.maximize_window()
 
 
 
@@ -50,7 +50,7 @@ if __name__ == '__main__':
 
         driver.find_element(By.CSS_SELECTOR, "button[name='login']").click()
         time.sleep(3)
-        driver.get('https://m.facebook.com/marketplace/create/rental')
+        driver.get('https://www.facebook.com/marketplace/create/rental')
         time.sleep(5)
         # driver.find_element(By.XPATH, '//a[contains(@href,"/marketplace")]').click()
         # time.sleep(3)
@@ -61,47 +61,56 @@ if __name__ == '__main__':
         images = []
         for image in Data['image']:
             images.append(imagefoldername+image+'.jpg')
-        for image in images:
-            driver.find_element(By.CSS_SELECTOR,'a[aria-label="Add Photos"] input[name="photos-input"]').send_keys(image)
+        # for image in images:
+        #     driver.find_element(By.CSS_SELECTOR,'a[aria-label="Add Photos"] input[name="photos-input"]').send_keys(image)
 
-        # for img in images:
-        #         photo_elem = driver.find_element(By.CSS_SELECTOR, 'div [aria-label="Marketplace"]  label > input[accept="image/*,image/heif,image/heic"]')
-        #         if img != images[len(images)-1]:
-        #             photo_elem.send_keys(img + os.linesep)
-        #             time.sleep(2)
-        #         else:
-        #             photo_elem.send_keys(img)
-        #
-        #         p = 1300
-        driver.find_element(By.CSS_SELECTOR, "[aria-label='Home for Sale or Rent']").click()
+        for img in images:
+                photo_elem = driver.find_element(By.CSS_SELECTOR, 'input[accept="image/*,image/heif,image/heic"]')
+                if img != images[len(images)-1]:
+                    photo_elem.send_keys(img + os.linesep)
+                    time.sleep(2)
+                else:
+                    photo_elem.send_keys(img)
+
+                p = 1300
+        driver.find_element(By.CSS_SELECTOR, 'label[aria-label="Home for Sale or Rent"]').click()
         time.sleep(3)
         driver.find_elements(By.CSS_SELECTOR, '[role="option"]')[0].click()
         time.sleep(2)
-        driver.find_element(By.CSS_SELECTOR, '[aria-label="Rental type"]').click()
+        driver.find_element(By.CSS_SELECTOR, 'label[aria-label="Rental type"]').click()
         time.sleep(2)
-        driver.find_elements(By.CSS_SELECTOR, '[role="option"]')[1].click()
+        propertyType = Data['Property Type']
+        if 'House' in Data['Property Type']:
+            driver.find_elements(By.CSS_SELECTOR, 'div[role="option"]')[1].click()
+        elif 'Apartment' in Data['Property Type']:
+            driver.find_elements(By.CSS_SELECTOR, 'div[role="option"]')[0].click()
+        elif 'Townhouse' in Data['Property Type']:
+            driver.find_elements(By.CSS_SELECTOR, 'div[role="option"]')[2].click()
         time.sleep(2)
-        driver.find_element(By.CSS_SELECTOR, '[aria-label="Number of bedrooms"] > div > div input').send_keys(Data['Bedrooms'])
+        driver.find_element(By.CSS_SELECTOR, 'label[aria-label="Number of bedrooms"] > div > div input').send_keys((int(Data['Bedrooms'].strip())))
         time.sleep(2)
-        driver.find_element(By.CSS_SELECTOR, '[aria-label="Number of bathrooms"] > div > div input').send_keys(Data['Bathrooms'])
+        driver.find_element(By.CSS_SELECTOR, 'label[aria-label="Number of bathrooms"] > div > div input').send_keys((int(Data['Bedrooms'].strip())))
         time.sleep(2)
-        driver.find_element(By.CSS_SELECTOR, '[aria-label="Price per month"] > div > div input').send_keys(Data['Price'])
+        driver.find_element(By.CSS_SELECTOR, 'label[aria-label="Price per month"] > div > div input').send_keys(Data['Price'].strip())
         time.sleep(2)
-        driver.find_element(By.CSS_SELECTOR, '[aria-label="Rental address"] > div > div input').send_keys(Data['Address'])
+        driver.find_element(By.CSS_SELECTOR, 'label[aria-label="Rental address"] > div > div input').send_keys(Data['Address'].strip())
         time.sleep(2)
-        driver.find_elements(By.CSS_SELECTOR, '[aria-label="10 suggested searches"] > [role="option"]')[0].click()
+        driver.find_elements(By.CSS_SELECTOR, 'ul[aria-label="10 suggested searches"] > li[role="option"]')[0].click()
         time.sleep(2)
-        driver.find_element(By.CSS_SELECTOR, '[aria-label="Rental description"] > div > div textarea').send_keys(Data['Description'])
+        driver.find_element(By.CSS_SELECTOR, 'label[aria-label="Rental description"] > div > div textarea').send_keys(Data['Description'])
         pets = Data['Pets'].split('\r')[0].strip()
-        if pets == 'No':
-            driver.find_element(By.CSS_SELECTOR, '[aria-label="Cat friendly"]').click()
-            driver.find_element(By.CSS_SELECTOR, '[aria-label="Dog friendly"]').click()
+        if pets != 'No':
+            driver.find_element(By.CSS_SELECTOR, 'input[aria-label="Cat friendly"]').click()
+            driver.find_element(By.CSS_SELECTOR, 'input[aria-label="Dog friendly"]').click()
 
 
         driver.find_element(By.CSS_SELECTOR, 'div[aria-label="Next"]').click()
         time.sleep(3)
         driver.find_element(By.CSS_SELECTOR, 'div[aria-label="Publish"]').click()
         time.sleep(7)
+
+        for img in images:
+            os.remove(img)
 
     driver.quit()
 

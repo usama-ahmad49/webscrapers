@@ -30,7 +30,7 @@ def read_email_from_gmail():
             for image in selector.css('div img')[1:]:
                 imgURL = image.css('::attr(src)').extract_first()
                 nameimgURl = imgURL.split('/')[-1]
-                urllib.request.urlretrieve(imgURL, f"E:\\Project\\pricescraperlk\\webscrapers\\webscrapers\\scraping\\scraping\\spiders\\attachment\\{nameimgURl}.jpg")
+                urllib.request.urlretrieve(imgURL, f"D:\\Work\\webscrapers\\scraping\\scraping\\spiders\\attachment\\{nameimgURl}.jpg")
                 imagename.append(nameimgURl)
             item = dict()
             item['account'] = Subjectline
@@ -47,6 +47,7 @@ def read_email_from_gmail():
                     item[keyname] = value
 
             adDetails.append(item)
+            # mail.delete()
         except Exception as e:
             print("error when saving the attachment:" + str(e))
 
