@@ -35,7 +35,6 @@ headers = {'Accept': 'application/json, text/javascript, */*; q=0.01', 'Accept-L
            'sec-ch-ua': '"Chromium";v="104", " Not A;Brand";v="99", "Google Chrome";v="104"', 'sec-ch-ua-mobile': '?0',
            'sec-ch-ua-platform': '"Windows"', }
 
-dateNow = datetime.datetime.now().isoformat()
 
 OutPutList = []
 
@@ -485,8 +484,8 @@ class JudicialSonoraSpider(scrapy.Spider):
             item['sentido_sentencia'] = ''
             item['resoluciones'] = ''
             item['origen'] = 'PODER JUDICIAL DEL ESTADO DE SONORA'
-            item['fecha_insercion'] = dateNow
-            item['fecha_tecnica'] = datetime.datetime.strptime(item['fecha'], '%Y/%m/%d').isoformat()
+            item['fecha_insercion'] = datetime.datetime.now()#.isoformat()
+            item['fecha_tecnica'] = datetime.datetime.strptime(item['fecha'], '%Y/%m/%d')#.isoformat()
             OutPutList.append(item)
 
     def close(spider, reason):
