@@ -1,7 +1,7 @@
 import time
 # import scrapy
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
@@ -18,15 +18,15 @@ import gmail_email_read
 if __name__ == '__main__':
     imagefoldername = 'D:\\Work\\webscrapers\\scraping\\scraping\\spiders\\attachment\\'
     ad_detail = gmail_email_read.read_email_from_gmail()
-    options = webdriver.ChromeOptions()
-    options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    options.add_experimental_option('useAutomationExtension', False)
+    options = webdriver.FirefoxOptions()
+    # options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    # options.add_experimental_option('useAutomationExtension', False)
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_argument("--window-size=1880,1300")
     options.add_argument("--disable-notifications")
 
 
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Firefox(options=options)
     driver.get('https://www.facebook.com/')
     for Data in ad_detail:
         usernamePassword = Data['account'].split('>')
@@ -65,14 +65,14 @@ if __name__ == '__main__':
         #     driver.find_element(By.CSS_SELECTOR,'a[aria-label="Add Photos"] input[name="photos-input"]').send_keys(image)
 
         for img in images:
-                photo_elem = driver.find_element(By.CSS_SELECTOR, 'input[accept="image/*,image/heif,image/heic"]')
-                if img != images[len(images)-1]:
-                    photo_elem.send_keys(img + os.linesep)
-                    time.sleep(2)
-                else:
-                    photo_elem.send_keys(img)
+            photo_elem = driver.find_element(By.CSS_SELECTOR, 'input[accept="image/*,image/heif,image/heic"]')
+            if img != images[len(images)-1]:
+                photo_elem.send_keys(img + os.linesep)
+                time.sleep(2)
+            else:
+                photo_elem.send_keys(img)
 
-                p = 1300
+            p = 1300
         driver.find_element(By.CSS_SELECTOR, 'label[aria-label="Home for Sale or Rent"]').click()
         time.sleep(3)
         driver.find_elements(By.CSS_SELECTOR, '[role="option"]')[0].click()
@@ -94,7 +94,7 @@ if __name__ == '__main__':
         driver.find_element(By.CSS_SELECTOR, 'label[aria-label="Price per month"] > div > div input').send_keys(Data['Price'].strip())
         time.sleep(2)
         driver.find_element(By.CSS_SELECTOR, 'label[aria-label="Rental address"] > div > div input').send_keys(Data['Address'].strip())
-        time.sleep(2)
+        time.sleep(3)
         driver.find_elements(By.CSS_SELECTOR, 'ul[aria-label="10 suggested searches"] > li[role="option"]')[0].click()
         time.sleep(2)
         driver.find_element(By.CSS_SELECTOR, 'label[aria-label="Rental description"] > div > div textarea').send_keys(Data['Description'])
