@@ -113,76 +113,76 @@ class JudicialSonoraSpider(scrapy.Spider):
                     actor = data['Partes'].split('VS')[0]
                     demandado = data['Partes'].split('VS')[-1]
                     if '.-' in actor:
-                        item['actor'] = remove_accents(actor.split('.-')[-1].strip())
+                        item['actor'] = remove_accents(actor.split('.-')[-1].strip()).upper()
                     elif '-' in actor:
-                        item['actor'] = remove_accents(actor.split('-')[-1].strip())
+                        item['actor'] = remove_accents(actor.split('-')[-1].strip()).upper()
                     elif '.' in actor:
-                        item['actor'] = remove_accents(actor.split('.')[-1].strip())
+                        item['actor'] = remove_accents(actor.split('.')[-1].strip()).upper()
                     elif 'PROMOVIDO POR' in actor:
-                        item['actor'] = remove_accents(actor.split('PROMOVIDO POR')[-1].strip())
+                        item['actor'] = remove_accents(actor.split('PROMOVIDO POR')[-1].strip()).upper()
                     elif 'PROMOVIDO PRO' in actor:
-                        item['actor'] = remove_accents(actor.split('PROMOVIDO PRO')[-1].strip())
+                        item['actor'] = remove_accents(actor.split('PROMOVIDO PRO')[-1].strip()).upper()
                     elif ')' in actor:
-                        item['actor'] = remove_accents(actor.split(')')[-1].strip())
+                        item['actor'] = remove_accents(actor.split(')')[-1].strip()).upper()
                     else:
-                        item['actor'] = remove_accents(actor.strip())
-                    item['demandado'] = remove_accents(demandado.strip())
+                        item['actor'] = remove_accents(actor.strip()).upper()
+                    item['demandado'] = remove_accents(demandado.strip()).upper()
                 elif '.-' in data['Partes']:
                     try:
                         if 'PRESENTADO POR' in data['Partes']:
                             item['actor'] = remove_accents(
-                                data['Partes'].split('PRESENTADO POR')[-1].split('DERIVADO')[0])
+                                data['Partes'].split('PRESENTADO POR')[-1].split('DERIVADO')[0]).upper()
                             item['demandado'] = ''
                         elif 'PROMOVIDO A FAVOR DE' in data['Partes']:
                             item['actor'] = remove_accents(
-                                data['Partes'].split('PROMOVIDO A FAVOR DE')[-1])
+                                data['Partes'].split('PROMOVIDO A FAVOR DE')[-1]).upper()
                             item['demandado'] = ''
                         elif 'INTERPUESTO POR' in data['Partes']:
-                            item['actor'] = remove_accents(data['Partes'].split('INTERPUESTO POR')[-1])
+                            item['actor'] = remove_accents(data['Partes'].split('INTERPUESTO POR')[-1]).upper()
                             item['demandado'] = ''
                         elif 'PROM. POR' in data['Partes']:
                             if 'EN CONTRA DE' in data['Partes']:
                                 item['actor'] = remove_accents(
-                                    data['Partes'].split('PROM. POR')[-1].split('EN CONTRA DE')[0])
-                                item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1])
+                                    data['Partes'].split('PROM. POR')[-1].split('EN CONTRA DE')[0]).upper()
+                                item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1]).upper()
                             elif 'EN CONTRA DE' not in data['Partes']:
-                                item['actor'] = remove_accents(data['Partes'].split('PROM. POR')[-1])
+                                item['actor'] = remove_accents(data['Partes'].split('PROM. POR')[-1]).upper()
                                 item['demandado'] = ''
 
 
                         elif 'PROMOVIDO POR' in data['Partes'] and 'VS' in data['Partes']:
                             item['actor'] = remove_accents(
-                                data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[0].strip())
-                            item['demandado'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[1])
+                                data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[0].strip()).upper()
+                            item['demandado'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[1]).upper()
                         elif 'PROMOVIDO POR' in data['Partes'] and 'EN CONTRA DE' in data['Partes']:
                             item['actor'] = remove_accents(
-                                data['Partes'].split('PROMOVIDO POR')[-1].split('EN CONTRA DE')[0])
+                                data['Partes'].split('PROMOVIDO POR')[-1].split('EN CONTRA DE')[0]).upper()
                             item['demandado'] = remove_accents(
-                                data['Partes'].split('PROMOVIDO POR')[-1].split('EN CONTRA DE')[-1])
+                                data['Partes'].split('PROMOVIDO POR')[-1].split('EN CONTRA DE')[-1]).upper()
                         elif 'PROMOVIDO POR' in data['Partes'] and 'EN CONTRA DE' not in data['Partes']:
-                            item['actor'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1])
+                            item['actor'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1]).upper()
                             item['demandado'] = ''
                         elif 'PROMOVIDO POR' not in data['Partes'] and 'EN CONTRA DE' in data['Partes']:
                             item['actor'] = ''
-                            item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1])
+                            item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1]).upper()
 
                         elif 'VS.-' in data['Partes']:
-                            item['actor'] = remove_accents([v for v in data['Partes'].split('VS.-')[0].split('.-') if v!=' ' if v != ''][-1].strip().upper())
-                            item['demandado'] = remove_accents([v for v in data['Partes'].split('VS.-')[-1].split('.-') if v!=' ' if v != ''][-1].strip().upper())
+                            item['actor'] = remove_accents([v for v in data['Partes'].split('VS.-')[0].split('.-') if v!=' ' if v != ''][-1].strip()).upper()
+                            item['demandado'] = remove_accents([v for v in data['Partes'].split('VS.-')[-1].split('.-') if v!=' ' if v != ''][-1].strip()).upper()
 
 
                         elif len([v for v in data['Partes'].split('.-') if v != '' if v != ' '][1].split('VS')) == 2:
                             item['actor'] = remove_accents(
                                 [v for v in data['Partes'].split('.-') if v != '' if v != ' '][1].split('VS')[
-                                    0].strip().upper())
+                                    0].strip()).upper()
                             item['demandado'] = \
                                 remove_accents(
                                     [v for v in data['Partes'].split('.-') if v != '' if v != ' '][1].split('VS')[
-                                        -1].strip().upper())
+                                        -1].strip()).upper()
                         else:
                             item['actor'] = remove_accents(
                                 ' '.join([v for v in data['Partes'].split('.-') if v != '' if v != ' '][1:]).split('VS')[
-                                    0].strip().upper().replace('-', '').strip())
+                                    0].strip().upper().replace('-', '').strip()).upper()
                             item['demandado'] = ''
                     except:
                         item['actor'] = ''
@@ -191,37 +191,37 @@ class JudicialSonoraSpider(scrapy.Spider):
                     try:
                         if 'PRESENTADO POR' in data['Partes']:
                             item['actor'] = remove_accents(
-                                data['Partes'].split('PRESENTADO POR')[-1].split('DERIVADO')[0])
+                                data['Partes'].split('PRESENTADO POR')[-1].split('DERIVADO')[0]).upper()
                             item['demandado'] = ''
                         elif 'PROMOVIDO A FAVOR DE' in data['Partes']:
                             item['actor'] = remove_accents(
-                                data['Partes'].split('PROMOVIDO A FAVOR DE')[-1])
+                                data['Partes'].split('PROMOVIDO A FAVOR DE')[-1]).upper()
                             item['demandado'] = ''
                         elif 'INTERPUESTO POR' in data['Partes']:
-                            item['actor'] = remove_accents(data['Partes'].split('INTERPUESTO POR')[-1])
+                            item['actor'] = remove_accents(data['Partes'].split('INTERPUESTO POR')[-1]).upper()
                             item['demandado'] = ''
                         elif 'PROM. POR' in data['Partes']:
                             if 'EN CONTRA DE' in data['Partes']:
                                 item['actor'] = remove_accents(
-                                    data['Partes'].split('PROM. POR')[-1].split('EN CONTRA DE')[0])
-                                item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1])
+                                    data['Partes'].split('PROM. POR')[-1].split('EN CONTRA DE')[0]).upper()
+                                item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1]).upper()
                             elif 'EN CONTRA DE' not in data['Partes']:
-                                item['actor'] = remove_accents(data['Partes'].split('PROM. POR')[-1])
+                                item['actor'] = remove_accents(data['Partes'].split('PROM. POR')[-1]).upper()
                                 item['demandado'] = ''
                         elif 'PROMOVIDO POR' in data['Partes'] and 'VS' in data['Partes']:
-                            item['actor'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[0])
-                            item['demandado'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[1])
+                            item['actor'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[0]).upper()
+                            item['demandado'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[1]).upper()
                         elif 'PROMOVIDO POR' in data['Partes'] and 'EN CONTRA DE' in data['Partes']:
                             item['actor'] = remove_accents(
-                                data['Partes'].split('PROMOVIDO POR')[-1].split('EN CONTRA DE')[0])
+                                data['Partes'].split('PROMOVIDO POR')[-1].split('EN CONTRA DE')[0]).upper()
                             item['demandado'] = remove_accents(
-                                data['Partes'].split('PROMOVIDO POR')[-1].split('EN CONTRA DE')[-1])
+                                data['Partes'].split('PROMOVIDO POR')[-1].split('EN CONTRA DE')[-1]).upper()
                         elif 'PROMOVIDO POR' in data['Partes'] and 'EN CONTRA DE' not in data['Partes']:
-                            item['actor'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1])
+                            item['actor'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1]).upper()
                             item['demandado'] = ''
                         elif 'PROMOVIDO POR' not in data['Partes'] and 'EN CONTRA DE' in data['Partes']:
                             item['actor'] = ''
-                            item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1])
+                            item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1]).upper()
 
                         # elif 'VS.' in data['Partes']:
                         #     item['actor'] = remove_accents(data['Partes'].split('VS.')[0].split('.')[-1].strip().upper())
@@ -230,14 +230,14 @@ class JudicialSonoraSpider(scrapy.Spider):
                         elif len([v for v in data['Partes'].split('.') if v != '' if v != ' '][1].split('VS')) == 2:
                             item['actor'] = remove_accents(
                                 [v for v in data['Partes'].split('.') if v != '' if v != ' '][1].split('VS')[
-                                    0].strip().upper())
+                                    0].strip().upper()).upper()
                             item['demandado'] = \
                                 remove_accents(
                                     [v for v in data['Partes'].split('.') if v != '' if v != ' '][1].split('VS')[
-                                        -1].strip().upper())
+                                        -1].strip().upper()).upper()
                         else:
                             item['actor'] = remove_accents(
-                                ' '.join([v for v in data['Partes'].split('.') if v != '' if v != ' '][1:]).split('VS')[0].strip().upper())
+                                ' '.join([v for v in data['Partes'].split('.') if v != '' if v != ' '][1:]).split('VS')[0].strip().upper()).upper()
                             item['demandado'] = ''
                     except:
                         item['actor'] = ''
@@ -246,52 +246,52 @@ class JudicialSonoraSpider(scrapy.Spider):
                     try:
                         if 'PRESENTADO POR' in data['Partes']:
                             item['actor'] = remove_accents(
-                                data['Partes'].split('PRESENTADO POR')[-1].split('DERIVADO')[0])
+                                data['Partes'].split('PRESENTADO POR')[-1].split('DERIVADO')[0]).upper()
                             item['demandado'] = ''
                         elif 'PROMOVIDO A FAVOR DE' in data['Partes']:
                             item['actor'] = remove_accents(
-                                data['Partes'].split('PROMOVIDO A FAVOR DE')[-1])
+                                data['Partes'].split('PROMOVIDO A FAVOR DE')[-1]).upper()
                             item['demandado'] = ''
                         elif 'INTERPUESTO POR' in data['Partes']:
-                            item['actor'] = remove_accents(data['Partes'].split('INTERPUESTO POR')[-1])
+                            item['actor'] = remove_accents(data['Partes'].split('INTERPUESTO POR')[-1]).upper()
                             item['demandado'] = ''
                         elif 'PROM. POR' in data['Partes']:
                             if 'EN CONTRA DE' in data['Partes']:
                                 item['actor'] = remove_accents(
-                                    data['Partes'].split('PROM. POR')[-1].split('EN CONTRA DE')[0])
-                                item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1])
+                                    data['Partes'].split('PROM. POR')[-1].split('EN CONTRA DE')[0]).upper()
+                                item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1]).upper()
                             elif 'EN CONTRA DE' not in data['Partes']:
-                                item['actor'] = remove_accents(data['Partes'].split('PROM. POR')[-1])
+                                item['actor'] = remove_accents(data['Partes'].split('PROM. POR')[-1]).upper()
                                 item['demandado'] = ''
                         elif 'PROMOVIDO POR' in data['Partes'] and 'VS' in data['Partes']:
-                            item['actor'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[0])
-                            item['demandado'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[1])
+                            item['actor'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[0]).upper()
+                            item['demandado'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[1]).upper()
                         elif 'PROMOVIDO POR' in data['Partes'] and 'EN CONTRA DE' in data['Partes']:
                             item['actor'] = remove_accents(
-                                data['Partes'].split('PROMOVIDO POR')[-1].split('EN CONTRA DE')[0])
+                                data['Partes'].split('PROMOVIDO POR')[-1].split('EN CONTRA DE')[0]).upper()
                             item['demandado'] = remove_accents(
-                                data['Partes'].split('PROMOVIDO POR')[-1].split('EN CONTRA DE')[-1])
+                                data['Partes'].split('PROMOVIDO POR')[-1].split('EN CONTRA DE')[-1]).upper()
                         elif 'PROMOVIDO POR' in data['Partes'] and 'EN CONTRA DE' not in data['Partes']:
-                            item['actor'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1])
+                            item['actor'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1]).upper()
                             item['demandado'] = ''
                         elif 'PROMOVIDO POR' not in data['Partes'] and 'EN CONTRA DE' in data['Partes']:
                             item['actor'] = ''
-                            item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1])
+                            item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1]).upper()
 
 
                         elif len([v for v in data['Partes'].split('-') if v != '' if v != ' '][1].split('VS')) == 2:
                             item['actor'] = remove_accents(
                                 [v for v in data['Partes'].split('-') if v != '' if v != ' '][1].split('VS')[
-                                    0].strip().upper())
+                                    0].strip().upper()).upper()
                             item['demandado'] = \
                                 remove_accents(
                                     [v for v in data['Partes'].split('-') if v != '' if v != ' '][1].split('VS')[
-                                        -1].strip().upper())
+                                        -1].strip().upper()).upper()
 
                         else:
                             item['actor'] = remove_accents(
                                 ' '.join([v for v in data['Partes'].split('-') if v != '' if v != ' '][1:]).split('VS')[
-                                    0].strip().upper())
+                                    0].strip().upper()).upper()
                             item['demandado'] = ''
                     except:
                         item['actor'] = ''
@@ -299,50 +299,50 @@ class JudicialSonoraSpider(scrapy.Spider):
             except:
                 try:
                     if 'PRESENTADO POR' in data['Partes']:
-                        item['actor'] = remove_accents(data['Partes'].split('PRESENTADO POR')[-1].split('DERIVADO')[0])
+                        item['actor'] = remove_accents(data['Partes'].split('PRESENTADO POR')[-1].split('DERIVADO')[0]).upper()
                         item['demandado'] = ''
                     elif 'PROMOVIDO A FAVOR DE' in data['Partes']:
                         item['actor'] = remove_accents(
-                            data['Partes'].split('PROMOVIDO A FAVOR DE')[-1])
+                            data['Partes'].split('PROMOVIDO A FAVOR DE')[-1]).upper()
                         item['demandado'] = ''
                     elif 'INTERPUESTO POR' in data['Partes']:
-                        item['actor'] = remove_accents(data['Partes'].split('INTERPUESTO POR')[-1])
+                        item['actor'] = remove_accents(data['Partes'].split('INTERPUESTO POR')[-1]).upper()
                         item['demandado'] = ''
                     elif 'PROM. POR' in data['Partes']:
                         if 'EN CONTRA DE' in data['Partes']:
                             item['actor'] = remove_accents(
-                                data['Partes'].split('PROM. POR')[-1].split('EN CONTRA DE')[0])
-                            item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1])
+                                data['Partes'].split('PROM. POR')[-1].split('EN CONTRA DE')[0]).upper()
+                            item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1]).upper()
                         elif 'EN CONTRA DE' not in data['Partes']:
-                            item['actor'] = remove_accents(data['Partes'].split('PROM. POR')[-1])
+                            item['actor'] = remove_accents(data['Partes'].split('PROM. POR')[-1]).upper()
                             item['demandado'] = ''
 
                     elif 'PROMOVIDO POR' in data['Partes'] and 'VS' in data['Partes']:
-                        item['actor'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[0])
-                        item['demandado'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[1])
+                        item['actor'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[0]).upper()
+                        item['demandado'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1].split('VS')[1]).upper()
                     elif 'PROMOVIDO POR' in data['Partes'] and 'EN CONTRA DE' in data['Partes']:
                         item['actor'] = remove_accents(
-                            data['Partes'].split('PROMOVIDO POR')[-1].split('EN CONTRA DE')[0])
+                            data['Partes'].split('PROMOVIDO POR')[-1].split('EN CONTRA DE')[0]).upper()
                         item['demandado'] = remove_accents(
-                            data['Partes'].split('PROMOVIDO POR')[-1].split('EN CONTRA DE')[-1])
+                            data['Partes'].split('PROMOVIDO POR')[-1].split('EN CONTRA DE')[-1]).upper()
                     elif 'PROMOVIDO POR' in data['Partes'] and 'EN CONTRA DE' not in data['Partes']:
-                        item['actor'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1])
+                        item['actor'] = remove_accents(data['Partes'].split('PROMOVIDO POR')[-1]).upper()
                         item['demandado'] = ''
                     elif 'PROMOVIDO POR' not in data['Partes'] and 'EN CONTRA DE' in data['Partes']:
                         item['actor'] = ''
-                        item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1])
+                        item['demandado'] = remove_accents(data['Partes'].split('EN CONTRA DE')[-1]).upper()
                     elif len([v for v in data['Partes'].split('-') if v != '' if v != ' '][1].split('VS')) == 2:
                         item['actor'] = remove_accents(
                             [v for v in data['Partes'].split('-') if v != '' if v != ' '][1].split('VS')[
-                                0].strip().upper())
+                                0].strip().upper()).upper()
                         item['demandado'] = \
                             remove_accents(
                                 [v for v in data['Partes'].split('-') if v != '' if v != ' '][1].split('VS')[
-                                    -1].strip().upper())
+                                    -1].strip().upper()).upper()
                     else:
                         item['actor'] = remove_accents(
                             ' '.join([v for v in data['Partes'].split('-') if v != '' if v != ' '][1:]).split('VS')[
-                                0].strip().upper().replace('-', '').strip())
+                                0].strip().upper().replace('-', '').strip()).upper()
                         item['demandado'] = ''
                 except:
                     item['actor'] = ''
@@ -351,55 +351,55 @@ class JudicialSonoraSpider(scrapy.Spider):
             if 'Penales'.lower() in data['Secretaria'].lower():
                 if item['demandado'] == '':
                     try:
-                        item['demandado'] = remove_accents(data['Partes'].split('.-')[-2])
+                        item['demandado'] = remove_accents(data['Partes'].split('.-')[-2]).upper()
                     except:
                         try:
-                            item['demandado'] = remove_accents(data['Partes'].split('.-')[0])
+                            item['demandado'] = remove_accents(data['Partes'].split('.-')[0]).upper()
                         except:
                             item['demandado'] = ''
 
             elif 'Acuerdos Mesa Penal'.lower() in data['Secretaria'].lower():
                 if item['demandado'] == '':
                     try:
-                        item['demandado'] = remove_accents(data['Partes'].split('.')[-2])
+                        item['demandado'] = remove_accents(data['Partes'].split('.')[-2]).upper()
                     except:
                         try:
-                            item['demandado'] = remove_accents(data['Partes'].split('.')[0])
+                            item['demandado'] = remove_accents(data['Partes'].split('.')[0]).upper()
                         except:
                             item['demandado'] = ''
             elif 'Primera Secretaría (Penal)'.lower() in data['Secretaria'].lower():
                 if item['demandado'] == '':
                     try:
-                        item['demandado'] = remove_accents(data['Partes'].split('.')[-2])
+                        item['demandado'] = remove_accents(data['Partes'].split('.')[-2]).upper()
                     except:
                         try:
-                            item['demandado'] = remove_accents(data['Partes'].split('.')[0])
+                            item['demandado'] = remove_accents(data['Partes'].split('.')[0]).upper()
                         except:
                             item['demandado'] = ''
 
 
-            item['entidad'] = remove_accents(response.meta['entidad'].upper())
+            item['entidad'] = remove_accents(response.meta['entidad'].upper()).upper()
             try:
                 tipoAsunto = data['TipoAsunto'] or ''
                 asunto = data['Asunto'] or ''
                 anio = data['Anio'] or ''
-                item['expediente'] = remove_accents((tipoAsunto+' '+asunto+'/'+anio).upper().strip())
+                item['expediente'] = remove_accents((tipoAsunto+' '+asunto+'/'+anio).upper().strip()).upper()
             except:
                 item['expediente'] = ''
-            item['fecha'] = remove_accents(response.meta['fecha'].upper())
+            item['fecha'] = remove_accents(response.meta['fecha'].upper()).upper()
             item['fuero'] = 'COMUN'
-            item['juzgado'] = remove_accents(response.meta['juzgado'].upper())
+            item['juzgado'] = remove_accents(response.meta['juzgado'].upper()).upper()
             try:
                 if '.-' in data['Partes']:
-                    item['tipo'] = remove_accents(data['Partes'].split('.-')[0].upper())
+                    item['tipo'] = remove_accents(data['Partes'].split('.-')[0].upper()).upper()
                 elif '-' in data['Partes'] and '.-' not in data['Partes']:
-                    item['tipo'] = remove_accents(data['Partes'].split('-')[0].upper())
+                    item['tipo'] = remove_accents(data['Partes'].split('-')[0].upper()).upper()
                 else:
-                    item['tipo'] = remove_accents(data['Partes'].split('.')[0].upper())
+                    item['tipo'] = remove_accents(data['Partes'].split('.')[0].upper()).upper()
             except:
                 item['tipo'] = ''
             try:
-                item['acuerdos'] = remove_accents(data['Sintesis'].replace('@', '').upper())
+                item['acuerdos'] = remove_accents(data['Sintesis'].replace('@', '').upper()).upper()
             except:
                 item['acuerdos'] = ''
             item['monto'] = ''
@@ -411,7 +411,7 @@ class JudicialSonoraSpider(scrapy.Spider):
             item['Organo_jurisdiccional_origen'] = ''
             try:
                 if 'DERIVADO DEL EXPEDIENTE' in data['Partes']:
-                    item['expediente_origen'] = data['Partes'].split('DERIVADO DEL EXPEDIENTE')[-1]
+                    item['expediente_origen'] = data['Partes'].split('DERIVADO DEL EXPEDIENTE')[-1].upper()
                 else:
                     item['expediente_origen'] = ''
             except:
