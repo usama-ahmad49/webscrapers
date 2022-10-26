@@ -16,7 +16,7 @@ import gmail_email_read
 
 
 if __name__ == '__main__':
-    imagefoldername = 'D:\\Work\\webscrapers\\scraping\\scraping\\spiders\\attachment\\'
+    imagefoldername = 'C:\\Users\\corre\\Desktop\\facebook Ad Post\\attachment\\'
     ad_detail = gmail_email_read.read_email_from_gmail()
     options = webdriver.FirefoxOptions()
     # options.add_experimental_option("excludeSwitches", ["enable-automation"])
@@ -32,12 +32,7 @@ if __name__ == '__main__':
         usernamePassword = Data['account'].split('>')
         username = usernamePassword[0]
         password = usernamePassword[1]
-
-
-
         driver.maximize_window()
-
-
 
         for _chr in username:
             driver.find_element(By.ID, "email").send_keys(_chr)

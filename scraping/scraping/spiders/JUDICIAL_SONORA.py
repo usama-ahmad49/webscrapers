@@ -16,7 +16,7 @@ from scrapy.utils.log import configure_logging
 from twisted.internet import defer
 from twisted.internet import reactor
 
-from under_conn import Mongoconexion
+# from under_conn import Mongoconexion
 
 '''headers and cookies necessary for the scraper to work'''
 cookies = {'PHPSESSID': 'idfhb84l6enp07b0dq8m4vrcg4', '_ga': 'GA1.3.1313228774.1659800930',
@@ -489,17 +489,17 @@ class JudicialSonoraSpider(scrapy.Spider):
             OutPutList.append(item)
 
     def close(spider, reason):
-        MyClient = Mongoconexion('Crudo')
-        client = MyClient[0]
-        db = client['Crudo']
-        collection = db['Judicial_Sonora']
+        # MyClient = Mongoconexion('Crudo')
+        # client = MyClient[0]
+        # db = client['Crudo']
+        # collection = db['Judicial_Sonora']
         global OutPutList
         # with open('sample.json', 'w') as f:
         #     json.dump(OutPutList, f)
-        try:
-            collection.insert_many(OutPutList)
-        except:
-            collection.insert_one(OutPutList)
+        # try:
+        #     collection.insert_many(OutPutList)
+        # except:
+        #     collection.insert_one(OutPutList)
         OutPutList = []
 
 
