@@ -54,12 +54,7 @@ def getgooglelinks(filedesignations):
     for des in filedesignations:
         if des != '':
             url = f'https://www.google.com/search?q=site:linkedin.com {companyname} intitle"{des}"&sxsrf=ALiCzsZ0Q9wAg43iYoRf35wNpTjxpCJtGw:1666909552823&ei=cAVbY6XnMf7cptQPzu2pgAk&ved=0ahUKEwil35L-uYH7AhV-rokEHc52CpAQ4dUDCA8&uact=5&oq=site:linkedin.com {companyname} intitle"{des}"&gs_lcp=Cgdnd3Mtd2l6EANKBAhBGAFKBAhGGABQ6RdY6RdghCVoAnAAeACAAZ0BiAGdAZIBAzAuMZgBAKABAqABAcABAQ&sclient=gws-wiz&num=100'
-            # opener = urllib.request.build_opener(
-            #     urllib.request.ProxyHandler(
-            #         {
-            #             'http': 'http://brd-customer-c_4a77ed38-zone-serp_nauman:1226xcxw21xa@zproxy.lum-superproxy.io:22225',
-            #             'https': 'http://brd-customer-c_4a77ed38-zone-serp_nauman:1226xcxw21xa@zproxy.lum-superproxy.io:22225'}))
-            # opener.open(url).read()
+            
             response = requests.get(url, proxies=proxies, verify=certificate)
             googleselector = scrapy.Selector(text=response.text)
             googlelinklist = googleselector.css('.kvH3mc.BToiNc.UK95Uc a::attr(href)').extract()
