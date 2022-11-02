@@ -9,6 +9,7 @@ except ImportError:
 import datetime
 import json
 import re
+import platform
 
 import PyPDF2
 import requests
@@ -18,6 +19,13 @@ from scrapy.crawler import CrawlerRunner
 from scrapy.utils.log import configure_logging
 from twisted.internet import defer
 from twisted.internet import reactor
+
+from tempfile import TemporaryDirectory
+from pathlib import Path
+
+import pytesseract
+from pdf2image import convert_from_path
+from PIL import Image
 
 # from under_conn import Mongoconexion
 
@@ -31,7 +39,7 @@ def remove_accents(string):
     string = re.sub(u"[òóôõö]", 'o', string)
     string = re.sub(u"[ùúûü]", 'u', string)
     string = re.sub(u"[ýÿ]", 'y', string)
-    string = re.sub(u"[ñ]", 'n', string)
+    # string = re.sub(u"[ñ]", 'n', string)
 
     string = re.sub(u"[ÀÁÂÃÄÅ]", 'A', string)
     string = re.sub(u"[ÈÉÊË]", 'E', string)
@@ -39,7 +47,7 @@ def remove_accents(string):
     string = re.sub(u"[ÒÓÔÕÖ]", 'O', string)
     string = re.sub(u"[ÙÚÛÜ]", 'U', string)
     string = re.sub(u"[ÝŸ]", 'Y', string)
-    string = re.sub(u"[Ñ]", 'N', string)
+    # string = re.sub(u"[Ñ]", 'N', string)
 
     string = re.sub(u"[()~!@#$%^&*=-]",'',string)
     string = re.sub(u"[\t\n\r]", "", string)
@@ -61,6 +69,7 @@ class TribunalLaboralEstadoMexicoSpider(scrapy.Spider):
             url = 'http://teca.edomex.gob.mx'+res.css('a::attr(href)').extract_first()
             yield scrapy.Request(url=url, callback=self.parse_month)
     def parse_month(self, response):
+        global path_to_poppler_exe
         for res in response.css('.field-item.even p a'):
             link = 'http://teca.edomex.gob.mx'+res.css('::attr(href)').extract_first()
             filename = res.css('::attr(href)').extract_first().split('/')[-1]
@@ -69,18 +78,62 @@ class TribunalLaboralEstadoMexicoSpider(scrapy.Spider):
             # creating a pdf file object
             pdfFileObj = open(f"D:\\Work\\webscrapers\\scraping\\scraping\\spiders\\Tribunal_Laboral_Estado_Mexico\\{filename}", 'rb')
 
-            # creating a pdf reader object
-            pdfReader = PyPDF2.PdfFileReader(pdfFileObj)
-            # creating a page object
-            pageObj = pdfReader.getPage(0)
-
             # extracting text from page
-            extractedtext = pageObj.extractText()
+            if platform.system() == "Windows":
+                pytesseract.pytesseract.tesseract_cmd = (
+                    r"D:\Work\webscrapers\scraping\scraping\spiders\Tribunal_Laboral_Estado_Mexico\tesseract.exe"
+                )
 
-            date = [v for v in extractedtext.split('\n') if not '  ' == v][1]
+                # Windows also needs poppler_exe
+                path_to_poppler_exe = Path(r"D:\Work\webscrapers\scraping\scraping\spiders\Tribunal_Laboral_Estado_Mexico\poppler-0.68.0\bin\pdftoppm.exe")
 
-            # closing the pdf file object
-            pdfFileObj.close()
+                # Put our output files in a sane place...
+                out_directory = Path(r"~\Desktop").expanduser()
+            else:
+                out_directory = Path("~").expanduser()
+
+            PDF_file = Path(f"D:\\Work\\webscrapers\\scraping\\scraping\\spiders\\Tribunal_Laboral_Estado_Mexico\\{filename}")
+
+            # Store all the pages of the PDF in a variable
+            image_file_list = []
+
+            text_file = out_directory / Path("out_text.txt")
+            with TemporaryDirectory() as tempdir:
+                # Create a temporary directory to hold our temporary images.
+
+                """
+                Part #1 : Converting PDF to images
+                """
+
+                if platform.system() == "Windows":
+                    pdf_pages = convert_from_path(
+                        PDF_file, 500, poppler_path=path_to_poppler_exe
+                    )
+                else:
+                    pdf_pages = convert_from_path(PDF_file, 500)
+                for page_enumeration, page in enumerate(pdf_pages, start=1):
+                    filename = f"{tempdir}\page_{page_enumeration:03}.jpg"
+                    page.save(filename, "JPEG")
+                    image_file_list.append(filename)
+                """
+                        Part #2 - Recognizing text from the images using OCR
+                        """
+
+                with open(text_file, "a") as output_file:
+                    for image_file in image_file_list:
+                        text = str(((pytesseract.image_to_string(Image.open(image_file)))))
+
+                        text = text.replace("-\n", "")
+                        output_file.write(text)
+
+
+            # extractedtext = pageObj.extractText()
+            # item = dict()
+            # if extractedtext != '':
+            #     date = [v for v in extractedtext.split('\n') if not '  ' == v][1]
+            #     item['fecha']=''
+            # # closing the pdf file object
+            # pdfFileObj.close()
 
 
 if __name__ == '__main__':
