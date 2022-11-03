@@ -16,7 +16,7 @@ import gmail_email_read
 
 
 if __name__ == '__main__':
-    imagefoldername = 'D:\\Work\\webscrapers\\scraping\\scraping\\spiders\\attachment\\'
+    imagefoldername = r"E:\Project\pricescraperlk\webscrapers\webscrapers\scraping\scraping\spiders\attachment"
     ad_detail = gmail_email_read.read_email_from_gmail()
     options = webdriver.FirefoxOptions()
     # options.add_experimental_option("excludeSwitches", ["enable-automation"])

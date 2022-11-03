@@ -55,6 +55,57 @@ def remove_accents(string):
     string = re.sub(u"[-]", "", string)
     return string
 
+def readTextFromPDF(filename):
+    # extracting text from page
+    global path_to_poppler_exe
+    if platform.system() == "Windows":
+        pytesseract.pytesseract.tesseract_cmd = (
+            r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+        )
+
+        # Windows also needs poppler_exe
+        path_to_poppler_exe = Path(r"E:\Project\pricescraperlk\webscrapers\webscrapers\scraping\scraping\spiders\Tribunal_Laboral_Estado_Mexico\poppler-22.04.0\Library\bin")
+
+        # Put our output files in a sane place...
+        out_directory = Path(r"~\Desktop").expanduser()
+    else:
+        out_directory = Path("~").expanduser()
+    # out_directory = Path(r"~\Desktop").expanduser()
+
+    PDF_file = Path(f"E:\\Project\\pricescraperlk\\webscrapers\\webscrapers\\scraping\\scraping\\spiders\\Tribunal_Laboral_Estado_Mexico\\{filename}")
+
+    # Store all the pages of the PDF in a variable
+    image_file_list = []
+
+    text_file = out_directory / Path("out_text.txt")
+    with TemporaryDirectory() as tempdir:
+        # Create a temporary directory to hold our temporary images.
+
+        """
+        Part #1 : Converting PDF to images
+        """
+
+        if platform.system() == "Windows":
+            pdf_pages = convert_from_path(
+                PDF_file, 500, poppler_path=path_to_poppler_exe
+            )
+        else:
+            pdf_pages = convert_from_path(PDF_file, 500)
+        for page_enumeration, page in enumerate(pdf_pages, start=1):
+            filename = f"{tempdir}\page_{page_enumeration:03}.jpg"
+            page.save(filename, "JPEG")
+            image_file_list.append(filename)
+        """
+                Part #2 - Recognizing text from the images using OCR
+                """
+        outputtext = []
+        for image_file in image_file_list:
+            text = str(((pytesseract.image_to_string(Image.open(image_file)))))
+
+            text = text.replace("-\n", "")
+            outputtext.append(text)
+        return '\n'.join(outputtext)
+
 class TribunalLaboralEstadoMexicoSpider(scrapy.Spider):
     name = "Tribunal_Laboral_Estado_Mexico"
 
@@ -69,71 +120,17 @@ class TribunalLaboralEstadoMexicoSpider(scrapy.Spider):
             url = 'http://teca.edomex.gob.mx'+res.css('a::attr(href)').extract_first()
             yield scrapy.Request(url=url, callback=self.parse_month)
     def parse_month(self, response):
-        global path_to_poppler_exe
         for res in response.css('.field-item.even p a'):
             link = 'http://teca.edomex.gob.mx'+res.css('::attr(href)').extract_first()
             filename = res.css('::attr(href)').extract_first().split('/')[-1]
-            urllib.request.urlretrieve(link,f"D:\\Work\\webscrapers\\scraping\\scraping\\spiders\\Tribunal_Laboral_Estado_Mexico\\{filename}")
-
-            # creating a pdf file object
-            pdfFileObj = open(f"D:\\Work\\webscrapers\\scraping\\scraping\\spiders\\Tribunal_Laboral_Estado_Mexico\\{filename}", 'rb')
-
-            # extracting text from page
-            if platform.system() == "Windows":
-                pytesseract.pytesseract.tesseract_cmd = (
-                    r"D:\Work\webscrapers\scraping\scraping\spiders\Tribunal_Laboral_Estado_Mexico\tesseract.exe"
-                )
-
-                # Windows also needs poppler_exe
-                path_to_poppler_exe = Path(r"D:\Work\webscrapers\scraping\scraping\spiders\Tribunal_Laboral_Estado_Mexico\poppler-0.68.0\bin\pdftoppm.exe")
-
-                # Put our output files in a sane place...
-                out_directory = Path(r"~\Desktop").expanduser()
-            else:
-                out_directory = Path("~").expanduser()
-
-            PDF_file = Path(f"D:\\Work\\webscrapers\\scraping\\scraping\\spiders\\Tribunal_Laboral_Estado_Mexico\\{filename}")
-
-            # Store all the pages of the PDF in a variable
-            image_file_list = []
-
-            text_file = out_directory / Path("out_text.txt")
-            with TemporaryDirectory() as tempdir:
-                # Create a temporary directory to hold our temporary images.
-
-                """
-                Part #1 : Converting PDF to images
-                """
-
-                if platform.system() == "Windows":
-                    pdf_pages = convert_from_path(
-                        PDF_file, 500, poppler_path=path_to_poppler_exe
-                    )
-                else:
-                    pdf_pages = convert_from_path(PDF_file, 500)
-                for page_enumeration, page in enumerate(pdf_pages, start=1):
-                    filename = f"{tempdir}\page_{page_enumeration:03}.jpg"
-                    page.save(filename, "JPEG")
-                    image_file_list.append(filename)
-                """
-                        Part #2 - Recognizing text from the images using OCR
-                        """
-
-                with open(text_file, "a") as output_file:
-                    for image_file in image_file_list:
-                        text = str(((pytesseract.image_to_string(Image.open(image_file)))))
-
-                        text = text.replace("-\n", "")
-                        output_file.write(text)
+            urllib.request.urlretrieve(link,f"E:\\Project\\pricescraperlk\\webscrapers\\webscrapers\\scraping\\scraping\\spiders\\Tribunal_Laboral_Estado_Mexico\\{filename}")
+            FILE_TEXT = readTextFromPDF(filename)
+            print(FILE_TEXT)
 
 
-            # extractedtext = pageObj.extractText()
-            # item = dict()
-            # if extractedtext != '':
-            #     date = [v for v in extractedtext.split('\n') if not '  ' == v][1]
-            #     item['fecha']=''
-            # # closing the pdf file object
-            # pdfFileObj.close()
+
+
+
 
 
 if __name__ == '__main__':

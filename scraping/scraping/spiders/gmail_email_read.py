@@ -27,10 +27,10 @@ def read_email_from_gmail():
 
             selector = scrapy.Selector(text=body)
             imagename = []
-            for image in selector.css('div img')[1:]:
+            for i,image in enumerate(selector.css('div img')[1:]):
                 imgURL = image.css('::attr(src)').extract_first()
-                nameimgURl = imgURL.split('/')[-1]
-                urllib.request.urlretrieve(imgURL, f"D:\\Work\\webscrapers\\scraping\\scraping\\spiders\\attachment\\{nameimgURl}.jpg")
+                nameimgURl = f'image-{i}'
+                urllib.request.urlretrieve(imgURL, r"E:\Project\pricescraperlk\webscrapers\webscrapers\scraping\scraping\spiders\attachment\{}.jpg".format(nameimgURl))
                 imagename.append(nameimgURl)
             item = dict()
             item['account'] = Subjectline
