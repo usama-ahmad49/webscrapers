@@ -16,7 +16,7 @@ import gmail_email_read
 
 
 if __name__ == '__main__':
-    imagefoldername = r"D:\Work\webscrapers\scraping\scraping\spiders\attachment"
+    imagefoldername = r"E:\Project\pricescraperlk\webscrapers\webscrapers\scraping\scraping\spiders\attachment"
     ad_detail = gmail_email_read.read_email_from_gmail()
     options = webdriver.FirefoxOptions()
     # options.add_experimental_option("excludeSwitches", ["enable-automation"])
@@ -55,7 +55,10 @@ if __name__ == '__main__':
         # time.sleep(5)
         images = []
         for image in Data['image']:
-            images.append(imagefoldername+image+'.jpg')
+            if '.' in image:
+                images.append(imagefoldername+'\\'+image)
+            else:
+                images.append(imagefoldername+'\\'+image+'.jpg')
         # for image in images:
         #     driver.find_element(By.CSS_SELECTOR,'a[aria-label="Add Photos"] input[name="photos-input"]').send_keys(image)
 
@@ -74,17 +77,21 @@ if __name__ == '__main__':
         time.sleep(2)
         driver.find_element(By.CSS_SELECTOR, 'label[aria-label="Rental type"]').click()
         time.sleep(2)
-        propertyType = Data['Property Type']
-        if 'House' in Data['Property Type']:
-            driver.find_elements(By.CSS_SELECTOR, 'div[role="option"]')[1].click()
-        elif 'Apartment' in Data['Property Type']:
-            driver.find_elements(By.CSS_SELECTOR, 'div[role="option"]')[0].click()
-        elif 'Townhouse' in Data['Property Type']:
-            driver.find_elements(By.CSS_SELECTOR, 'div[role="option"]')[2].click()
+        for type in driver.find_elements(By.CSS_SELECTOR, 'div[role="option"]'):
+            if Data['Property Type'].strip() in type.find_element(By.CSS_SELECTOR, 'span').text:
+                type.click()
+                break
+        # propertyType = Data['Property Type']
+        # if 'House' in Data['Property Type']:
+        #     driver.find_elements(By.CSS_SELECTOR, 'div[role="option"]')[1].click()
+        # elif 'Apartment' in Data['Property Type']:
+        #     driver.find_elements(By.CSS_SELECTOR, 'div[role="option"]')[0].click()
+        # elif 'Townhouse' in Data['Property Type']:
+        #     driver.find_elements(By.CSS_SELECTOR, 'div[role="option"]')[2].click()
         time.sleep(2)
         driver.find_element(By.CSS_SELECTOR, 'label[aria-label="Number of bedrooms"] > div > div input').send_keys((int(Data['Bedrooms'].strip())))
         time.sleep(2)
-        driver.find_element(By.CSS_SELECTOR, 'label[aria-label="Number of bathrooms"] > div > div input').send_keys((int(Data['Bedrooms'].strip())))
+        driver.find_element(By.CSS_SELECTOR, 'label[aria-label="Number of bathrooms"] > div > div input').send_keys((int(Data['Bathrooms'].strip())))
         time.sleep(2)
         driver.find_element(By.CSS_SELECTOR, 'label[aria-label="Price per month"] > div > div input').send_keys(Data['Price'].strip())
         time.sleep(2)
