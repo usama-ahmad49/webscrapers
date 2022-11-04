@@ -10,7 +10,7 @@ from datetime import date
 
 
 def read_email_from_gmail():
-    outputDir = r"C:\attachment"
+    outputDir = r"D:\Work\webscrapers\scraping\scraping\spiders\attachment"
     outlook = win32com.client.Dispatch('outlook.application')  # access outlook application on windows
     mapi = outlook.GetNamespace("MAPI")  # get access to all folder in outlook application
     inbox = mapi.Folders['listingsforfacebook@gmail.com'].Folders["Inbox"]
@@ -21,17 +21,25 @@ def read_email_from_gmail():
         try:
             Subjectline = mail.subject
             body = mail.htmlbody
+            attac = False
+            imagename = []
             for attachment in mail.Attachments:
                 attachment.SaveASFile(os.path.join(outputDir, attachment.FileName))
                 print(f"attachment {attachment.FileName} saved")
+                imagename.append(attachment.FileName)
+                attac = True
+
+
 
             selector = scrapy.Selector(text=body)
-            imagename = []
-            for i,image in enumerate(selector.css('div img')[1:]):
-                imgURL = image.css('::attr(src)').extract_first()
-                nameimgURl = f'image-{i}'
-                urllib.request.urlretrieve(imgURL, r"E:\Project\pricescraperlk\webscrapers\webscrapers\scraping\scraping\spiders\attachment\{}.jpg".format(nameimgURl))
-                imagename.append(nameimgURl)
+
+            if attac == False:
+                for i,image in enumerate(selector.css('div img')[1:]):
+                    imgURL = image.css('::attr(src)').extract_first()
+                    nameimgURl = f'image-{i}'
+                    urllib.request.urlretrieve(imgURL, r"D:\Work\webscrapers\scraping\scraping\spiders\attachment\{}.jpg".format(nameimgURl))
+                    imagename.append(nameimgURl)
+
             item = dict()
             item['account'] = Subjectline
             item['image'] = imagename
