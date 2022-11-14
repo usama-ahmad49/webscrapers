@@ -87,7 +87,7 @@ class JudicialSonoraSpider(scrapy.Spider):
             IDs.append((v.css('::attr(value)').extract_first(), v.css('::attr(data-value)').extract_first(),
                         v.css('::text').extract_first()))
 
-        for uuid in IDs:
+        for uuid in IDs[-1:]:
             if uuid[0] == '':
                 continue
             # data is the body of the request
@@ -105,8 +105,6 @@ class JudicialSonoraSpider(scrapy.Spider):
     def parse(self, response, **kwargs):
         Jdata = json.loads(response.text)
         for data in Jdata['Resultado']:
-            if 'SUCESORIO INTESTAMENTARIO. J.JESUS ILDEFONSO QUEZADA' in data['Partes']:
-                print('this')
             item = dict()
             try:
                 if ' VS ' in data['Partes'] or 'VS.' in data['Partes']or 'VS-' in data['Partes']:
@@ -494,8 +492,9 @@ class JudicialSonoraSpider(scrapy.Spider):
         # db = client['Crudo']
         # collection = db['Judicial_Sonora']
         global OutPutList
-        # with open('sample.json', 'w') as f:
-        #     json.dump(OutPutList, f)
+        with open('testdata.json', 'a+') as f:
+            json.dump(OutPutList, f)
+        OutPutList = []
         # try:
         #     collection.insert_many(OutPutList)
         # except:

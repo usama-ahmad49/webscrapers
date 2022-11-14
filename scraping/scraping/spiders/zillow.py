@@ -4,22 +4,22 @@ import time
 import scrapy
 import csv
 from scrapy.crawler import CrawlerProcess
-from seleniumwire import webdriver
-from selenium.webdriver.firefox.options import Options as ff_options
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options as c_options
 #from scraping import settings
 
 
-Rfile=open('zipcode_zillow.txt','r')
-inputfile=Rfile.read()
+# Rfile=open('zipcode_zillow.txt','r')
+# inputfile=Rfile.read()
 
 Wfile=open('zillowData.csv','w',encoding='utf-8',newline='')
 csv_columns=['Price','Bedrooms','Bathrooms','Square feet','Address','Listing type','Zestimate','Est. payment:','Time on Zillow','Type:','Year built:','Heating:','Cooling:','Parking:','HOA:','Lot:','Price/sqft:','Rent Zestimate','Neighborhood stats','median Zestimate','Zillow link',]
 writer=csv.DictWriter(Wfile,fieldnames=csv_columns)
 writer.writeheader()
 
-options = ff_options()
+options = c_options()
 options.add_argument('--headless')
-driver = webdriver.Firefox(firefox_options=options)
+driver = webdriver.Chrome()
 
 
 class zillow(scrapy.Spider):
@@ -36,9 +36,9 @@ class zillow(scrapy.Spider):
         new_url = 'https://www.zillow.com/homes/10001_rb/'
         yield scrapy.Request(new_url, meta={'url':new_url})
 
-    def parse(self, responce):
-        inputdata=inputfile.split('\n')
-        for input in inputdata:
+    def parse(self, response, **kwargs):
+        # inputdata=inputfile.split('\n')
+        for input in ['10001']:#inputdata:
             url='https://www.zillow.com/search/GetSearchPageState.htm?searchQueryState=%7B%22pagination%22%3A%7B%22currentPage%22%3A2%7D%2C%22usersSearchTerm%22%3A%22'+str(input)+'%22%2C%22mapBounds%22%3A%7B%22west%22%3A-74.08536545581086%2C%22east%22%3A-73.9504396135257%2C%22south%22%3A40.69677215592377%2C%22north%22%3A40.77733747707232%7D%2C%22regionSelection%22%3A%5B%7B%22regionId%22%3A61615%2C%22regionType%22%3A7%7D%5D%2C%22isMapVisible%22%3Atrue%2C%22filterState%22%3A%7B%22isForSaleByAgent%22%3A%7B%22value%22%3Afalse%7D%2C%22isForSaleByOwner%22%3A%7B%22value%22%3Afalse%7D%2C%22isNewConstruction%22%3A%7B%22value%22%3Afalse%7D%2C%22isForSaleForeclosure%22%3A%7B%22value%22%3Afalse%7D%2C%22isComingSoon%22%3A%7B%22value%22%3Afalse%7D%2C%22isAuction%22%3A%7B%22value%22%3Afalse%7D%2C%22isPreMarketForeclosure%22%3A%7B%22value%22%3Afalse%7D%2C%22isPreMarketPreForeclosure%22%3A%7B%22value%22%3Afalse%7D%2C%22isForRent%22%3A%7B%22value%22%3Atrue%7D%7D%2C%22isListVisible%22%3Atrue%2C%22mapZoom%22%3A13%7D&wants={%22cat1%22:[%22listResults%22,%22mapResults%22,%22total%22]}&requestId=2'
             yield scrapy.Request(url,self.parse_23, meta={'input':input})
 

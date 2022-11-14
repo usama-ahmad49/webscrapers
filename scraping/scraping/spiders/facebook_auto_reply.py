@@ -2,7 +2,6 @@ import os
 import time
 
 import pdfplumber
-
 import pyperclip
 import win32com.client
 from docx2pdf import convert
@@ -17,8 +16,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 if __name__ == '__main__':
     today = date.today()
-    cwd =  'E:\\Project\\pricescraperlk\\webscrapers\\webscrapers\\scraping\\scraping\\spiders\\'
-    # cwd =  'C:\\Users\\corre\\Desktop\\facebookAutomation\\'
+    # cwd =  'E:\\Project\\pricescraperlk\\webscrapers\\webscrapers\\scraping\\scraping\\spiders\\'
+    cwd =  'C:\\Users\\corre\\Desktop\\facebookAutomation\\'
     # open document contaning messgage for auto reply
     # we use docx library for this purpose
     try:
@@ -47,13 +46,14 @@ if __name__ == '__main__':
         DATA = FAF.read().split('\n')
 
     outlook = win32com.client.Dispatch('outlook.application')
-    options = Options()
-    options.add_argument('--disable-notifications')  # to disable any unwanted notification popups or alerts
-    driver = webdriver.Firefox(service_log_path = os.devnull,options=options)  # open browser
-    driver.maximize_window()  # maximize window
-    driver.get('https://www.facebook.com/')  # go to facebook.om login page
+      # go to facebook.om login page
 
     for data in DATA:
+        options = Options()
+        options.add_argument('--disable-notifications')  # to disable any unwanted notification popups or alerts
+        driver = webdriver.Firefox(service_log_path=os.devnull, options=options)  # open browser
+        driver.maximize_window()  # maximize window
+        driver.get('https://www.facebook.com/')
         if data == '':
             continue
         replySentList = []
@@ -80,15 +80,7 @@ if __name__ == '__main__':
             driver.find_element(By.CSS_SELECTOR, 'div[aria-label="Collection of Marketplace items"]')
             time.sleep(3)
         except:
-            # click on the profile element to show logout button
-            try:
-                driver.find_element(By.CSS_SELECTOR, 'div[aria-label="Your profile"]').click()
-            except:
-                driver.find_element(By.CSS_SELECTOR, 'svg[aria-label="Your profile"]').click()
-            time.sleep(1)
-            # click logout button
-            driver.find_element(By.CSS_SELECTOR,
-                                'div[data-visualcompletion="ignore-dynamic"][role="listitem"][data-nocookies="true"]').click()
+            driver.quit()
             continue
         # get all messages from inbox and loop over them one by one to reply to them individually
         while True:
@@ -143,23 +135,23 @@ if __name__ == '__main__':
             driver.refresh()
             time.sleep(3)
         # click on the profile element to show logout button
-        try:
-            driver.find_element(By.CSS_SELECTOR, 'div[aria-label="Your profile"]').click()
-        except:
-            driver.find_element(By.CSS_SELECTOR, 'svg[aria-label="Your profile"]').click()
+        # try:
+        #     driver.find_element(By.CSS_SELECTOR, 'div[aria-label="Your profile"]').click()
+        # except:
+        #     driver.find_element(By.CSS_SELECTOR, 'svg[aria-label="Your profile"]').click()
         time.sleep(1)
         # click logout button
-        driver.find_element(By.CSS_SELECTOR,
-                            'div[data-visualcompletion="ignore-dynamic"][role="listitem"][data-nocookies="true"]').click()
-
-        if len(replySentList) !=0:
+        if len(replySentList) != 0:
             mail = outlook.CreateItem(0)
             mail.To = 'jcisnever@gmail.com'
             mail.Subject = f"Today's Report: {today}; for: {username.split('@')[0]}"
             mail.HTMLBody = f"<b>Today's Report Date: {today}<b><br><br><br>{'<br>'.join(replySentList)}<br>"
             mail.Send()
+        driver.quit()
+
+
 
 
 
     # all accounts served now close browser and end program
-    driver.quit()
+    # driver.quit()
