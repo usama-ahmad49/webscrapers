@@ -76,22 +76,6 @@ class steamStore(scrapy.Spider):
             for extlnk in externalLinks:
                 yield scrapy.Request(url=extlnk, callback=self.next_page_resp,
                                      meta={'name': game_name, 'date': release_date})
-        # all_emails = []
-        # if email is None or email == "":
-        #     url_list = []
-        #     url_list = url_list + [v for v in response.css('div#game_highlights div.rightcol a::attr(href)').extract() if 'https:' in v]
-        #     url_list = url_list + [v for v in response.css('div#earlyAccessHeader a::attr(href)').extract() if 'https:' in v]
-        #     url_list = url_list + response.css('div.apphub_OtherSiteInfo a.btnv6_blue_hoverfade::attr(href)').extract()
-        #     for url_next in url_list:
-        #         yield scrapy.Request(url=url_next, callback=self.next_page_resp,  meta={'name': game_name, 'date': release_date})
-        #
-        #     item = dict()
-        #     item['game_name'] = response.meta['name']
-        #     item['release_date'] = response.meta['date']
-        #     item['email'] = ','.join(all_emails)
-        #     writer.writerow(item)
-        #     csvfile.flush()
-
         else:
             item = dict()
             item['game_name'] = response.meta['name']
