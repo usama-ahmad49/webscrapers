@@ -10,7 +10,7 @@ resp = requests.get(
     'https://store.steampowered.com/search/results/?query&start=0&count=50&dynamic_data=&sort_by=_ASC&supportedlang=english&snr=1_7_7_230_7&infinite=1')
 total_count = json.loads(resp.text)['total_count']
 
-headers_csv = ['email', 'game_name', 'release_date', 'pre-release']
+headers_csv = ['email', 'game_name', 'release_date', 'pre-release', 'is_NSFW']
 csvfile = open('steamStore.csv', 'w', newline='', encoding='utf-8-sig')
 writer = csv.DictWriter(csvfile, fieldnames=headers_csv)
 writer.writeheader()
@@ -25,10 +25,17 @@ def get_email(page_text):
 class steamStore(scrapy.Spider):
     name = 'steamStore'
 
+    def __init__(self, NSFW=None, **kwargs):
+        super().__init__(**kwargs)
+        self.NSFW = NSFW
+
     def start_requests(self):
         start_count = 0
         while start_count < total_count:
-            url = f'https://store.steampowered.com/search/results/?query&start={start_count}&count=50&dynamic_data=&sort_by=_ASC&supportedlang=english&snr=1_7_7_230_7&infinite=1'
+            if self.NSFW == True:
+                url = f'https://store.steampowered.com/search/results/?query&start={start_count}&count=50&ignore_preferences=1&dynamic_data=&sort_by=_ASC&supportedlang=english&snr=1_7_7_230_7&infinite=1'
+            else:
+                url = f'https://store.steampowered.com/search/results/?query&start={start_count}&count=50&dynamic_data=&sort_by=_ASC&supportedlang=english&snr=1_7_7_230_7&infinite=1'
             start_count = start_count + 50
             yield scrapy.Request(url=url)
 
@@ -109,8 +116,9 @@ class steamStore(scrapy.Spider):
                 csvfile.flush()
 
 
-process = CrawlerProcess({
-    'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'
-})
-process.crawl(steamStore)
-process.start()
+def startscraper(NSFWFLAG):
+    process = CrawlerProcess({
+        'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'
+    })
+    process.crawl(steamStore, NSFW=NSFWFLAG)
+    process.start()
