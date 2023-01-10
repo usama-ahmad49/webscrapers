@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import base64
+import csv
 import os
 from email.message import EmailMessage
 
@@ -41,11 +42,14 @@ def gmail_send_message():
         # service = build('gmail', 'v1', credentials=creds)
         message = EmailMessage()
 
-        message.set_content('This is automated draft mail')
+        message.set_content(f'''Dear devs at {developer},\n
+                            I'd like to help with the development of your game {game}.\n
+                            Regards''')
 
         message['To'] = 'usamaahmed2222@gmail.com'
         message['From'] = 'rixtysoft01@gmail.com'
         message['Subject'] = 'Automated draft'
+
 
         # encoded message
         encoded_message = base64.urlsafe_b64encode(message.as_bytes()) \
@@ -62,6 +66,12 @@ def gmail_send_message():
         print(F'An error occurred: {error}')
         send_message = None
     return send_message
+
+def readcsvandschedualemail():
+    csvfile = open('steamStore.csv', 'r')
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        gmail_send_message()
 
 if __name__ == '__main__':
     gmail_send_message()

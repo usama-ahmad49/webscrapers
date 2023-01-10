@@ -60,8 +60,8 @@ class steamStore(scrapy.Spider):
             NSFWFlag = False
         else:
             NSFWFlag = True
-        if NSFWFlag:
-            return
+        # if NSFWFlag:
+        #     return
         flag = False
         for lang in response.css('#languageTable td ::text').extract():
             if 'English' in lang:
@@ -75,6 +75,8 @@ class steamStore(scrapy.Spider):
             email = ','.join(get_email(page_text))
         except:
             email = None
+        developers = [v for v in response.css('.dev_row') if 'Developer:' in v.css('.subtitle.column::text').extract()][0].css('.summary.column a::text').extract_first()
+        publishers = [v for v in response.css('.dev_row') if 'Publisher:' in v.css('.subtitle.column::text').extract()][0].css('.summary.column a::text').extract_first()
         externalLinks = [v.split('?url=')[-1] for v in
                          response.css('#appDetailsUnderlinedLinks .linkbar ::attr(href)').extract() if
                          'steamcommunity.com' in v and '?url=' in v]
@@ -82,7 +84,7 @@ class steamStore(scrapy.Spider):
         if email is None or email == "":
             for extlnk in externalLinks:
                 yield scrapy.Request(url=extlnk, callback=self.next_page_resp,
-                                     meta={'name': game_name, 'date': release_date})
+                                     meta={'name': game_name, 'date': release_date, 'developer':developers,'publisher':publishers,'is_NSFW':NSFWFlag})
         else:
             item = dict()
             item['game_name'] = response.meta['name']
@@ -91,6 +93,9 @@ class steamStore(scrapy.Spider):
             else:
                 item['release_date'] = response.meta['date']
             item['email'] = email
+            item['developers'] = developers
+            item['publishers'] = publishers
+            item['is_NSFW'] = NSFWFlag
 
             writer.writerow(item)
             csvfile.flush()
@@ -108,12 +113,15 @@ class steamStore(scrapy.Spider):
             item['pre-release'] = 'Yes'
         else:
             item['release_date'] = response.meta['date']
+        item['developers'] = response.meta['developer']
+        item['publishers'] = response.meta['publisher']
+        item['is_NSFW'] = response.meta['NSFWFlag']
         if email is not None:
             if email != "":
                 item['email'] = email
 
-                writer.writerow(item)
-                csvfile.flush()
+        writer.writerow(item)
+        csvfile.flush()
 
 
 def startscraper(NSFWFLAG):
@@ -122,3 +130,6 @@ def startscraper(NSFWFLAG):
     })
     process.crawl(steamStore, NSFW=NSFWFLAG)
     process.start()
+
+if __name__ == '__main__':
+    startscraper(NSFWFLAG = False)
