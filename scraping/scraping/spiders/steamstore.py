@@ -10,10 +10,11 @@ resp = requests.get(
     'https://store.steampowered.com/search/results/?query&start=0&count=50&dynamic_data=&sort_by=_ASC&supportedlang=english&snr=1_7_7_230_7&infinite=1')
 total_count = json.loads(resp.text)['total_count']
 
-headers_csv = ['email', 'game_name', 'release_date', 'pre-release', 'is_NSFW']
-csvfile = open('steamStore.csv', 'w', newline='', encoding='utf-8-sig')
+headers_csv = ["email", 'game_name', 'developers', 'publishers', 'release_date', 'pre-release', 'is_NSFW']
+csvfile = open('steamStore.csv', 'w', newline='', encoding='utf-8')
 writer = csv.DictWriter(csvfile, fieldnames=headers_csv)
 writer.writeheader()
+csvfile.flush()
 
 
 def get_email(page_text):
@@ -75,8 +76,10 @@ class steamStore(scrapy.Spider):
             email = ','.join(get_email(page_text))
         except:
             email = None
-        developers = [v for v in response.css('.dev_row') if 'Developer:' in v.css('.subtitle.column::text').extract()][0].css('.summary.column a::text').extract_first()
-        publishers = [v for v in response.css('.dev_row') if 'Publisher:' in v.css('.subtitle.column::text').extract()][0].css('.summary.column a::text').extract_first()
+        developers = '*'.join([v for v in response.css('.dev_row') if 'Developer:' in v.css('.subtitle.column::text').extract()][
+            0].css('.summary.column a::text').extract())
+        publishers = [v for v in response.css('.dev_row') if 'Publisher:' in v.css('.subtitle.column::text').extract()][
+            0].css('.summary.column a::text').extract_first()
         externalLinks = [v.split('?url=')[-1] for v in
                          response.css('#appDetailsUnderlinedLinks .linkbar ::attr(href)').extract() if
                          'steamcommunity.com' in v and '?url=' in v]
@@ -84,7 +87,8 @@ class steamStore(scrapy.Spider):
         if email is None or email == "":
             for extlnk in externalLinks:
                 yield scrapy.Request(url=extlnk, callback=self.next_page_resp,
-                                     meta={'name': game_name, 'date': release_date, 'developer':developers,'publisher':publishers,'is_NSFW':NSFWFlag})
+                                     meta={'name': game_name, 'date': release_date, 'developer': developers,
+                                           'publisher': publishers, 'is_NSFW': NSFWFlag})
         else:
             item = dict()
             item['game_name'] = response.meta['name']
@@ -104,7 +108,7 @@ class steamStore(scrapy.Spider):
         item = dict()
         page_text = " ".join([v for v in response.css(" ::text").extract()])
         try:
-            email = ','.join(get_email(page_text))
+            email = get_email(page_text)[0]
         except:
             pass
 
@@ -115,7 +119,7 @@ class steamStore(scrapy.Spider):
             item['release_date'] = response.meta['date']
         item['developers'] = response.meta['developer']
         item['publishers'] = response.meta['publisher']
-        item['is_NSFW'] = response.meta['NSFWFlag']
+        item['is_NSFW'] = response.meta['is_NSFW']
         if email is not None:
             if email != "":
                 item['email'] = email
@@ -131,5 +135,6 @@ def startscraper(NSFWFLAG):
     process.crawl(steamStore, NSFW=NSFWFLAG)
     process.start()
 
+
 if __name__ == '__main__':
-    startscraper(NSFWFLAG = False)
+    startscraper(NSFWFLAG=False)

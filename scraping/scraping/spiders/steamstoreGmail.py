@@ -2,17 +2,16 @@ from __future__ import print_function
 
 import base64
 import csv
-import os
+import time
 from email.message import EmailMessage
 
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from Google import Create_Service
 
-def gmail_send_message():
+from Google import Create_Service
+from tkinter import *
+
+from tkinter import messagebox
+def gmail_send_message(email, prereleased, developer, game):
     """Create and send an email message"""
 
     # creds = None
@@ -21,7 +20,7 @@ def gmail_send_message():
     API_NAME = 'gmail'
     API_VERSION = 'v1'
 
-    service = Create_Service(CLIENT_FILE, API_NAME, API_VERSION,SCOPES)
+    service = Create_Service(CLIENT_FILE, API_NAME, API_VERSION, SCOPES)
     # service.users.messages.send('usamaahmed2222@gmail.com')
 
     # if os.path.exists('token.json'):
@@ -41,15 +40,18 @@ def gmail_send_message():
     try:
         # service = build('gmail', 'v1', credentials=creds)
         message = EmailMessage()
+        if prereleased == 'Yes':
+            message.set_content(f'''Dear devs at {developer},\n
+                                I'd like to help with the development of your game {game}.\n
+                                Regards''')
+        else:
+            message.set_content(f'''Dear devs at {developer},\n
+                                            I'd like to help with the development of your game {game}.\n
+                                            Regards''')
 
-        message.set_content(f'''Dear devs at {developer},\n
-                            I'd like to help with the development of your game {game}.\n
-                            Regards''')
-
-        message['To'] = 'usamaahmed2222@gmail.com'
+        message['To'] = email
         message['From'] = 'rixtysoft01@gmail.com'
         message['Subject'] = 'Automated draft'
-
 
         # encoded message
         encoded_message = base64.urlsafe_b64encode(message.as_bytes()) \
@@ -67,11 +69,26 @@ def gmail_send_message():
         send_message = None
     return send_message
 
+
 def readcsvandschedualemail():
-    csvfile = open('steamStore.csv', 'r')
+    csvfile = open('steamStore.csv', 'r', encoding='utf-8')
     reader = csv.DictReader(csvfile)
     for row in reader:
-        gmail_send_message()
+        if '*' in row['developers']:
+            top = Tk()
+            top.geometry("100x100")
+            top.wm_withdraw()
+            messagebox.showwarning("warning", "more then one developer")
+        elif row['email'] == '':
+            top = Tk()
+            top.geometry("100x100")
+            top.wm_withdraw()
+            messagebox.showwarning("warning","No email found")
+        else:
+            gmail_send_message(email=row['email'], prereleased=row['pre-release'], developer=row['developers'],
+                           game=row['game_name'])
+            time.sleep(600)
+
 
 if __name__ == '__main__':
-    gmail_send_message()
+    readcsvandschedualemail()

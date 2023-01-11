@@ -6,6 +6,7 @@ import steamstoreGmail
 class App:
     def __init__(self, root):
         #setting title
+        self.GLabel_567 = None
         root.title("undefined")
         #setting window size
         width=574
@@ -68,6 +69,25 @@ class App:
         GButton_780.place(x=360,y=110,width=107,height=50)
         GButton_780["command"] = self.GButton_780_command
 
+        GButton_96 = tk.Button(root)
+        GButton_96["bg"] = "#f0f0f0"
+        ft = tkFont.Font(family='Times', size=10)
+        GButton_96["font"] = ft
+        GButton_96["fg"] = "#000000"
+        GButton_96["justify"] = "center"
+        GButton_96["text"] = "clear"
+        GButton_96.place(x=470, y=220, width=70, height=25)
+        GButton_96["command"] = self.GButton_96_command
+
+        GLabel_567 = tk.Label(root)
+        GLabel_567["bg"] = "#ffffff"
+        ft = tkFont.Font(family='Times', size=10)
+        GLabel_567["font"] = ft
+        GLabel_567["fg"] = "#333333"
+        GLabel_567["justify"] = "center"
+        GLabel_567["text"] = "message"
+        GLabel_567.place(x=240, y=150, width=311, height=61)
+
     def GCheckBox_571_command(self):
         print("command")
         status = var.get()
@@ -78,13 +98,17 @@ class App:
             NSFWGLOBALFLAG = False
 
     def GButton_61_command(self):
-        print("command")
         steamstore.startscraper(NSFWGLOBALFLAG)
 
+    def printmessage(self,str):
+        self.GLabel_567["text"]=str
 
     def GButton_780_command(self):
+        steamstoreGmail.readcsvandschedualemail()
+
+    def GButton_96_command(self):
         print("command")
-        steamstoreGmail.gmail_send_message()
+
 
 if __name__ == "__main__":
     NSFWGLOBALFLAG = False
