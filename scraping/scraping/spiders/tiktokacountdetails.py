@@ -1,4 +1,5 @@
-from seleniumwire import webdriver
+from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
@@ -7,11 +8,12 @@ from capcha import main_loop
 import time
 import csv
 import re
+from threading import Thread
 
 inputfile = open('tiktok_urls_list.txt', 'r')
 listofurls = inputfile.read().split('\n')
-
-csvfile = open('tiktokacountdetails.csv','w',newline = '', encoding='utf-8')
+filename = open('tiktokinputkeyword.txt','r').read()
+csvfile = open(f'{filename}-tiktokacountdetails.csv','w',newline = '', encoding='utf-8')
 headers = ['url', 'userid','name','following','followers','likes','description','email']
 writer = csv.DictWriter(csvfile,fieldnames=headers)
 writer.writeheader()
@@ -20,13 +22,24 @@ options = webdriver.ChromeOptions()
 options.add_experimental_option("excludeSwitches", ["enable-automation"])
 options.add_experimental_option('useAutomationExtension', False)
 options.add_argument("--disable-blink-features=AutomationControlled")
-
-driver = webdriver.Chrome(options=options)
-driver.maximize_window()
+options.add_argument("--headless")
 
 
-for url in listofurls:
-    driver.get(url)
+
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
+def gettiktokdata(link):
+    driver = webdriver.Chrome(options=options)
+    driver.set_page_load_timeout(30)
+    try:
+        driver.get(link)
+    except TimeoutException as ex:
+        print("Exception has been thrown. Browser timeout")
+        driver.quit()
+        return
     while True:
         try:
             if driver.find_element(By.XPATH,
@@ -65,15 +78,15 @@ for url in listofurls:
             pass
 
         try:
-            time.sleep(3)
+            # time.sleep(3)
             item = dict()
-            item['url'] = url
-            item['userid'] = url.split('/')[-1]
-            item['name'] = driver.find_element(By.CSS_SELECTOR,'h1[data-e2e="user-subtitle"]').text
-            item['following'] = driver.find_element(By.CSS_SELECTOR,'strong[title="Following"]').text
-            item['followers'] = driver.find_element(By.CSS_SELECTOR,'strong[title="Followers"]').text
-            item['likes'] = driver.find_element(By.CSS_SELECTOR,'strong[title="Likes"]').text
-            item['description'] = driver.find_element(By.CSS_SELECTOR,'h2[data-e2e="user-bio"]').text
+            item['url'] = link
+            item['userid'] = link.split('/')[-1]
+            item['name'] = driver.find_element(By.CSS_SELECTOR, 'h1[data-e2e="user-subtitle"]').text
+            item['following'] = driver.find_element(By.CSS_SELECTOR, 'strong[title="Following"]').text
+            item['followers'] = driver.find_element(By.CSS_SELECTOR, 'strong[title="Followers"]').text
+            item['likes'] = driver.find_element(By.CSS_SELECTOR, 'strong[title="Likes"]').text
+            item['description'] = driver.find_element(By.CSS_SELECTOR, 'h2[data-e2e="user-bio"]').text
             try:
                 match = re.search(r'[\w.+-]+@[\w-]+\.[\w.-]+', item['description'])
                 item['email'] = match.group(0)
@@ -81,6 +94,20 @@ for url in listofurls:
                 pass
             writer.writerow(item)
             csvfile.flush()
+            print(item['userid'])
             break
         except:
-            pass
+            break
+    driver.quit()
+
+if __name__ == '__main__':
+    for chunk_links in chunks(listofurls, 5):
+        thread2 = []
+        for link in chunk_links:
+            if link == '':
+                continue
+            newt = Thread(target=gettiktokdata, args=(link,))
+            newt.start()
+            thread2.append(newt)
+        for newt in thread2:
+            newt.join()

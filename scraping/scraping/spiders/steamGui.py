@@ -98,7 +98,9 @@ class App:
             NSFWGLOBALFLAG = False
 
     def GButton_61_command(self):
+        self.GLabel_567["text"] = 'Scraping Started...'
         steamstore.startscraper(NSFWGLOBALFLAG)
+        self.GLabel_567["text"] = 'Scraping Completed!!!'
 
     def printmessage(self,str):
         self.GLabel_567["text"]=str

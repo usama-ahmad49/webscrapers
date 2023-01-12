@@ -1,4 +1,6 @@
-from  selenium import webdriver
+import sys
+
+from selenium import webdriver
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
@@ -6,8 +8,9 @@ from selenium.webdriver import ActionChains
 from capcha import main_loop
 import time
 import csv
-
-cs = open('tiktok_urls_list.txt', 'w')
+inputfile = open('tiktokinputkeyword.txt','r')
+inputkeywork = inputfile.read()
+cs = open('1tiktok_urls_list.txt', 'w')
 # header_names = ['URL']
 # csv_writer = csv.DictWriter(cs, fieldnames=header_names)
 # csv_writer.writeheader()
@@ -19,12 +22,13 @@ options.add_argument("--disable-blink-features=AutomationControlled")
 
 driver = webdriver.Chrome(options=options)
 driver.maximize_window()
-driver.get("https://www.tiktok.com/search/user?q=hats")
+driver.get(f"https://www.tiktok.com/search/user?q={inputkeywork}")
 time.sleep(5)
-
+all_profile_urls = []
 while True:
     try:
-        if driver.find_element(By.XPATH,'//*[@id="tiktok-verify-ele"]/div/div[1]/div[2]/div').text == 'Verify to continue:':
+        if driver.find_element(By.XPATH,
+                               '//*[@id="tiktok-verify-ele"]/div/div[1]/div[2]/div').text == 'Verify to continue:':
             while True:
                 try:
                     WebDriverWait(driver, 30).until(
@@ -36,7 +40,7 @@ while True:
                     except:
                         distance2 = 10
 
-                    dragable = driver.find_element(By.XPATH,'//*[@id="secsdk-captcha-drag-wrapper"]/div[2]')
+                    dragable = driver.find_element(By.XPATH, '//*[@id="secsdk-captcha-drag-wrapper"]/div[2]')
                     quoitent = int(distance2 / 20)
                     remainder = distance2 % 20
                     hit = ActionChains(driver).click_and_hold(dragable)
@@ -47,7 +51,8 @@ while True:
                             hit.move_by_offset(20, 0)
                     time.sleep(4)
                     try:
-                        if driver.find_element(By.XPATH,'//*[@id="tiktok-verify-ele"]/div/div[1]/div[2]/div').text == 'Verify to continue:':
+                        if driver.find_element(By.XPATH,
+                                               '//*[@id="tiktok-verify-ele"]/div/div[1]/div[2]/div').text == 'Verify to continue:':
                             pass
                     except:
                         break
@@ -57,21 +62,25 @@ while True:
     except:
         pass
 
-
-    all_profile_urls = []
-    for loop in driver.find_elements(By.CSS_SELECTOR,'div.tiktok-1fwlm1o-DivPanelContainer.ea3pfar2 > div'):
+    for loop in driver.find_elements(By.CSS_SELECTOR, 'div.tiktok-1fwlm1o-DivPanelContainer.ea3pfar2 > div'):
         try:
-            profile_url = loop.find_element(By.CSS_SELECTOR,'a[data-e2e="search-user-avatar"]').get_attribute('href')
+            profile_url = loop.find_element(By.CSS_SELECTOR, 'a[data-e2e="search-user-avatar"]').get_attribute('href')
         except:
-            a=1
-            pass
+            continue
 
         if profile_url not in all_profile_urls:
-            cs.write(profile_url+'\n')
+            cs.write(profile_url + '\n')
             # item = dict()
             # item['URL'] = profile_url
             # csv_writer.writerow(item)
             cs.flush()
             all_profile_urls.append(profile_url)
-    driver.find_element(By.CSS_SELECTOR,'button[data-e2e="search-load-more"]').click()
-    time.sleep(5)
+    try:
+        WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-e2e="search-load-more"]')))
+    except:
+        driver.close()
+        sys.exit()
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    time.sleep(0.5)
+    driver.find_element(By.CSS_SELECTOR, 'button[data-e2e="search-load-more"]').click()
+    # time.sleep(5)

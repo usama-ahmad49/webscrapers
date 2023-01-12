@@ -71,19 +71,29 @@ def gmail_send_message(email, prereleased, developer, game):
 
 
 def readcsvandschedualemail():
+    top = Tk()
+    top.geometry("100x100")
+    top.wm_withdraw()
     csvfile = open('steamStore.csv', 'r', encoding='utf-8')
     reader = csv.DictReader(csvfile)
     for row in reader:
+        if row['email'] == '':
+            messagebox.showwarning("warning", f"No email was found during scraping!!!\n{row['game_name']}",icon='warning')
+            continue
         if '*' in row['developers']:
-            top = Tk()
-            top.geometry("100x100")
-            top.wm_withdraw()
-            messagebox.showwarning("warning", "more then one developer")
-        elif row['email'] == '':
-            top = Tk()
-            top.geometry("100x100")
-            top.wm_withdraw()
-            messagebox.showwarning("warning","No email found")
+            messagebox.showwarning("warning", f"more then one developer\n{row['game_name']}")
+            answer = messagebox.askquestion("Now What", "Procede with email?",icon='warning')
+            if answer == 'yes':
+                gmail_send_message(email=row['email'], prereleased=row['pre-release'], developer=row['developers'],
+                                   game=row['game_name'])
+                time.sleep(600)
+        elif row['developer'] != row['publisher']:
+            messagebox.showwarning("warning", f"DIFFERENT DEVELOPER AND PUBLISHER \n {row['game_name']}",icon='warning')
+            answer = messagebox.askquestion("Now What", "Procede with email?", icon='warning')
+            if answer == 'yes':
+                gmail_send_message(email=row['email'], prereleased=row['pre-release'], developer=row['developers'],
+                                   game=row['game_name'])
+                time.sleep(600)
         else:
             gmail_send_message(email=row['email'], prereleased=row['pre-release'], developer=row['developers'],
                            game=row['game_name'])

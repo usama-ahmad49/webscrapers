@@ -5,18 +5,19 @@ import mss
 import threading
 from pynput.mouse import Button, Controller
 import time
+import pyautogui
 
 stc = mss.mss()
 mouse = Controller()
 flag = True
-
+width, height= pyautogui.size()
 
 def main_loop():
 	while True:
 		scr = stc.grab(
 			{
-				"left": 700,
-				"top": 300,
+				"left": int(width*.36),
+				"top": int(height*0.27),
 				"width": 500,
 				"height": 450,
 			}
