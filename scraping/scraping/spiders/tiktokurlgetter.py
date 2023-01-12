@@ -29,13 +29,15 @@ while True:
     try:
         if driver.find_element(By.XPATH,
                                '//*[@id="tiktok-verify-ele"]/div/div[1]/div[2]/div').text == 'Verify to continue:':
+            location = driver.find_element(By.CSS_SELECTOR, '#tiktok-verify-ele div[role="dialog"]').location
+            size = driver.find_element(By.CSS_SELECTOR, '#tiktok-verify-ele div[role="dialog"]').size
             while True:
                 try:
                     WebDriverWait(driver, 30).until(
                         EC.presence_of_element_located(
                             (By.XPATH, '//*[@id="tiktok-verify-ele"]/div/div[2]/img[2]')))
                     try:
-                        distance2 = main_loop()
+                        distance2 = main_loop(location=location,size=size)
 
                     except:
                         distance2 = 10
