@@ -10,21 +10,6 @@ import csv
 import re
 from threading import Thread
 
-inputfile = open('tiktok_urls_list.txt', 'r')
-listofurls = inputfile.read().split('\n')
-filename = open('tiktokinputkeyword.txt','r').read()
-csvfile = open(f'{filename}-tiktokacountdetails.csv','w',newline = '', encoding='utf-8')
-headers = ['url', 'userid','name','following','followers','likes','description','email']
-writer = csv.DictWriter(csvfile,fieldnames=headers)
-writer.writeheader()
-
-options = webdriver.ChromeOptions()
-options.add_experimental_option("excludeSwitches", ["enable-automation"])
-options.add_experimental_option('useAutomationExtension', False)
-options.add_argument("--disable-blink-features=AutomationControlled")
-options.add_argument("--headless")
-
-
 
 def chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
@@ -97,17 +82,36 @@ def gettiktokdata(link):
             print(item['userid'])
             break
         except:
-            break
+            if driver.find_element(By.XPATH,
+                                   '//*[@id="tiktok-verify-ele"]/div/div[1]/div[2]/div').text == 'Verify to continue:':
+                continue
+            else:
+                break
     driver.quit()
 
 if __name__ == '__main__':
-    for chunk_links in chunks(listofurls, 5):
-        thread2 = []
-        for link in chunk_links:
-            if link == '':
-                continue
-            newt = Thread(target=gettiktokdata, args=(link,))
-            newt.start()
-            thread2.append(newt)
-        for newt in thread2:
-            newt.join()
+    filenames = open('tiktokinputkeyword.txt', 'r').read().split('\n')
+    options = webdriver.ChromeOptions()
+    options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    options.add_experimental_option('useAutomationExtension', False)
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    options.add_argument("--headless")
+    for filename in filenames:
+        inputfile = open(f'{filename} - tiktok_urls_list.txt', 'r')
+        listofurls = inputfile.read().split('\n')
+        csvfile = open(f'{filename} - tiktokacountdetails.csv', 'w', newline='', encoding='utf-8')
+        headers = ['url', 'userid', 'name', 'following', 'followers', 'likes', 'description', 'email']
+        writer = csv.DictWriter(csvfile, fieldnames=headers)
+        writer.writeheader()
+        for chunk_links in chunks(listofurls, 5):
+            thread2 = []
+            for link in chunk_links:
+                if link == '':
+                    continue
+                newt = Thread(target=gettiktokdata, args=(link,))
+                newt.start()
+                thread2.append(newt)
+            for newt in thread2:
+                newt.join()
+
+        listofurls.clear()
